@@ -1,0 +1,49 @@
+name: Publish
+
+# Builds the mod and publishes the jar to Modrinth.
+#
+# One-time repo setup (Settings → Secrets and variables → Actions):
+#   secret    MODRINTH_TOKEN       — a Modrinth PAT with the "Create versions" scope
+#   variable  MODRINTH_PROJECT_ID  — the Modrinth project id or slug
+#
+# Triggers on a published GitHub Release (recommended) or a manual run.
+# mc-publish reads the version, loaders and dependencies (fabric-api) from the
+# built jar's fabric.mod.json. NOTE: if Modrinth doesn't yet list game version
+# 26.1.2, add it on the project first or adjust `game-versions` below.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  modrinth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Publish to Modrinth
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          files: build/libs/grounds-devmod-*.jar
+          version-type: release
+          changelog-file: CHANGELOG.md
+          loaders: fabric
+          game-versions: "26.1.2"

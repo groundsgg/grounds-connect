@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "grounds",
+  "version": "${version}",
+  "name": "Grounds DevMod",
+  "description": "Log in to the Grounds platform from the main menu, pick a project, and browse that project's Minecraft servers — with live status, deploy toasts and log streaming — from a dedicated Grounds screen.",
+  "icon": "assets/grounds/icon.png",
+  "authors": [
+    "Grounds"
+  ],
+  "contact": {
+    "homepage": "https://grounds.gg",
+    "sources": "https://github.com/groundsgg/grounds-devmod"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "gg.grounds.serverlist.GroundsClient"
+    ]
+  },
+  "mixins": [
+    "grounds.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "fabric-api": "*",
+    "minecraft": "~26.1.2",
+    "java": ">=21"
+  }
+}

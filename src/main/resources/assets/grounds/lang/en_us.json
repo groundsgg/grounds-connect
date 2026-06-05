@@ -1,0 +1,38 @@
+{
+  "grounds.control.login": "Grounds: Log in",
+  "grounds.control.connecting": "Grounds: …",
+  "grounds.control.refresh": "Refresh",
+  "grounds.control.refresh.tooltip": "Reload this project's servers",
+  "grounds.control.project.placeholder": "Project: —",
+  "grounds.control.project.loading": "Project: loading…",
+  "grounds.control.project.prefix": "Project",
+  "grounds.menu.logout": "Log out",
+  "grounds.menu.open": "Open Grounds",
+  "grounds.action.join": "Join",
+  "grounds.search.hint": "Search servers…",
+  "grounds.platform.unreachable": "⚠ Grounds platform unreachable",
+  "key.grounds.open": "Open Grounds Platform",
+
+
+  "grounds.device.title": "Sign in to Grounds",
+  "grounds.device.instructions": "Open this page in your browser and enter the code:",
+  "grounds.device.url": "%s",
+  "grounds.device.code": "Code: %s",
+  "grounds.device.open": "Open page",
+  "grounds.device.copyCode": "Copy code",
+  "grounds.device.copyUrl": "Copy link",
+  "grounds.device.waiting": "Waiting for you to authorize…",
+  "grounds.device.requesting": "Requesting a login code…",
+  "grounds.device.success": "Signed in. Loading your projects…",
+  "grounds.device.copied": "Copied to clipboard.",
+  "grounds.device.cancel": "Cancel",
+
+  "grounds.status.loadingProjects": "Loading projects…",
+  "grounds.status.loadingServers": "Loading servers…",
+  "grounds.status.noProjects": "No projects on your account.",
+  "grounds.status.noServers": "No Minecraft servers in this project.",
+  "grounds.status.joinViaProxy": "This is a backend server — join it through the Velocity proxy.",
+  "grounds.error.login": "Login failed: %s",
+  "grounds.error.projects": "Could not load projects: %s",
+  "grounds.error.servers": "Could not load servers: %s"
+}
