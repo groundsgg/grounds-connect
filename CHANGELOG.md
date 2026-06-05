@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+Maintenance release — no gameplay changes. The publish pipeline now runs on the Node 24 runtime.
+
 ## 0.2.0
 
 > **Minecraft 26.1.2** · Fabric Loader ≥ 0.19 · Java 21+ · Fabric API **now required**
