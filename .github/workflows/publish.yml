@@ -3,8 +3,8 @@ name: Publish
 # Builds the mod and publishes the jar to Modrinth.
 #
 # One-time repo setup (Settings → Secrets and variables → Actions):
-#   secret    MODRINTH_TOKEN       — a Modrinth PAT with the "Create versions" scope
-#   variable  MODRINTH_PROJECT_ID  — the Modrinth project id or slug
+#   secret  MODRINTH_TOKEN       — a Modrinth PAT with the "Create versions" scope
+#   secret  MODRINTH_PROJECT_ID  — the Modrinth project id or slug
 #
 # Triggers on a published GitHub Release (recommended) or a manual run.
 # mc-publish reads the version, loaders and dependencies (fabric-api) from the
@@ -40,7 +40,7 @@ jobs:
       - name: Publish to Modrinth
         uses: Kir-Antipov/mc-publish@v3.3
         with:
-          modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
+          modrinth-id: ${{ secrets.MODRINTH_PROJECT_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           files: build/libs/grounds-devmod-*.jar
           version-type: release
