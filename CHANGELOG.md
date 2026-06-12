@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/groundsgg/grounds-connect/compare/v0.2.1...v0.2.2) (2026-06-12)
+
+
+### Bug Fixes
+
+* **modrinth:** rename project to grounds connect ([#1](https://github.com/groundsgg/grounds-connect/issues/1)) ([f7d75d1](https://github.com/groundsgg/grounds-connect/commit/f7d75d1f23c3ce258ad11cb232890fb359650de5))
+
 ## 0.2.1
 
 Maintenance release — no gameplay changes. The publish pipeline now runs on the Node 24 runtime.
