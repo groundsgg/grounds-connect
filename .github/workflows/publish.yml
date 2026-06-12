@@ -34,7 +34,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
 
 # Run JavaScript actions on Node 24 (Node 20 is deprecated on the runners).
 env:
@@ -100,6 +100,12 @@ jobs:
           else
             cp CHANGELOG.md .modrinth-changelog.md
           fi
+
+      - name: Attach jar to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/libs/grounds-connect-*.jar
 
       - name: Publish to Modrinth
         uses: Kir-Antipov/mc-publish@v3.3
