@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -217,7 +218,7 @@ public class GroundsServerList extends ObjectSelectionList<GroundsServerList.Ser
                 }
                 return s;
             }
-            return pinging ? "pinging…" : "";
+            return pinging ? I18n.get("grounds_connect.server.pinging") : "";
         }
 
         private DeploymentRuntime.Health health() {
@@ -227,11 +228,11 @@ public class GroundsServerList extends ObjectSelectionList<GroundsServerList.Ser
         private String badgeLabel() {
             DeploymentRuntime rt = runtime;
             return switch (health()) {
-                case UP -> "● online"
+                case UP -> "● " + I18n.get("grounds_connect.server.health.online")
                         + (rt != null && rt.replicasDesired() > 0 ? " " + rt.replicasReady() + "/" + rt.replicasDesired() : "");
-                case STARTING -> "● starting…";
-                case PAUSED -> "● paused";
-                case DOWN -> "● offline";
+                case STARTING -> "● " + I18n.get("grounds_connect.server.health.starting");
+                case PAUSED -> "● " + I18n.get("grounds_connect.server.health.paused");
+                case DOWN -> "● " + I18n.get("grounds_connect.server.health.offline");
                 default -> "● …";
             };
         }

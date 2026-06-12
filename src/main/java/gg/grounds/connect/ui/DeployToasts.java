@@ -34,14 +34,14 @@ public final class DeployToasts {
     }
 
     private static Component message(String status) {
-        return Component.literal(switch (status == null ? "" : status) {
-            case "received", "building" -> "Building…";
-            case "build_succeeded", "deploying" -> "Deploying…";
-            case "ready" -> "Deployed ✓";
-            case "build_failed" -> "Build failed ✗";
-            case "deploy_failed" -> "Deploy failed ✗";
-            case "rejected" -> "Rejected ✗";
-            default -> status;
-        });
+        return switch (status == null ? "" : status) {
+            case "received", "building" -> Component.translatable("grounds_connect.toast.building");
+            case "build_succeeded", "deploying" -> Component.translatable("grounds_connect.toast.deploying");
+            case "ready" -> Component.translatable("grounds_connect.toast.deployed");
+            case "build_failed" -> Component.translatable("grounds_connect.toast.buildFailed");
+            case "deploy_failed" -> Component.translatable("grounds_connect.toast.deployFailed");
+            case "rejected" -> Component.translatable("grounds_connect.toast.rejected");
+            default -> Component.literal(status);
+        };
     }
 }

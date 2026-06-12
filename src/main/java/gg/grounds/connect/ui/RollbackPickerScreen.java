@@ -25,7 +25,7 @@ public final class RollbackPickerScreen extends Screen {
     private StringWidget status;
 
     public RollbackPickerScreen(Screen parent, String deploymentName, String projectId) {
-        super(Component.literal("Rollback · " + deploymentName));
+        super(Component.translatable("grounds_connect.rollback.title", deploymentName));
         this.parent = parent;
         this.deploymentName = deploymentName;
         this.projectId = projectId;
@@ -44,14 +44,14 @@ public final class RollbackPickerScreen extends Screen {
         addRenderableWidget(status);
 
         int by = this.height - 28;
-        addRenderableWidget(Button.builder(Component.literal("Roll back to selected"), b -> doRollback())
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.rollback.selected"), b -> doRollback())
                 .bounds(this.width / 2 - 153, by, 150, 20).build());
         addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, b -> onClose())
                 .bounds(this.width / 2 + 3, by, 100, 20).build());
 
         if (!requested) {
             requested = true;
-            setStatus(Component.literal("Loading builds…"));
+            setStatus(Component.translatable("grounds_connect.rollback.loading"));
             GroundsSession.get().fetchRollbackTargets(deploymentName, projectId, new GroundsSession.Callback<>() {
                 @Override
                 public void onResult(List<RollbackTarget> value) {
@@ -60,13 +60,13 @@ public final class RollbackPickerScreen extends Screen {
                     }
                     list.setTargets(value);
                     setStatus(value.isEmpty()
-                            ? Component.literal("No ready builds to roll back to.") : Component.empty());
+                            ? Component.translatable("grounds_connect.rollback.empty") : Component.empty());
                 }
 
                 @Override
                 public void onError(Throwable error) {
                     if (isCurrent()) {
-                        setStatus(Component.literal("Error: " + error.getMessage()));
+                        setStatus(Component.translatable("grounds_connect.rollback.error", error.getMessage()));
                     }
                 }
             });
@@ -76,10 +76,10 @@ public final class RollbackPickerScreen extends Screen {
     private void doRollback() {
         TargetEntry entry = list.getSelected();
         if (entry == null) {
-            setStatus(Component.literal("Pick a build first."));
+            setStatus(Component.translatable("grounds_connect.rollback.pickFirst"));
             return;
         }
-        setStatus(Component.literal("Rolling back…"));
+        setStatus(Component.translatable("grounds_connect.rollback.running"));
         GroundsSession.get().rollback(deploymentName, projectId, entry.target.id(),
                 () -> {
                     if (isCurrent()) {
@@ -88,7 +88,7 @@ public final class RollbackPickerScreen extends Screen {
                 },
                 error -> {
                     if (isCurrent()) {
-                        setStatus(Component.literal("Rollback failed: " + error));
+                        setStatus(Component.translatable("grounds_connect.rollback.failed", error));
                     }
                 });
     }
@@ -147,7 +147,7 @@ public final class RollbackPickerScreen extends Screen {
             if (img.length() > 28) {
                 img = "…" + img.substring(img.length() - 28);
             }
-            return img + (current ? "  (current)" : "");
+            return img + (current ? "  " + Component.translatable("grounds_connect.rollback.current").getString() : "");
         }
 
         @Override

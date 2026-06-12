@@ -30,7 +30,7 @@ public abstract class TitleScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void grounds$addButton(CallbackInfo ci) {
-        Button button = Button.builder(Component.literal("Grounds Connect"), b -> grounds$onClick())
+        Button button = Button.builder(Component.translatable("grounds_connect.title"), b -> grounds$onClick())
                 .bounds(0, 0, 200, 20)
                 .build();
 

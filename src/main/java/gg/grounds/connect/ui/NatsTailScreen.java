@@ -34,7 +34,7 @@ public final class NatsTailScreen extends Screen {
     private String subjects = ">";
 
     public NatsTailScreen(Screen parent, String projectId, String projectLabel) {
-        super(Component.literal("NATS tail · " + projectLabel));
+        super(Component.translatable("grounds_connect.nats.tailTitle", projectLabel));
         this.parent = parent;
         this.projectId = projectId;
         this.projectLabel = projectLabel;
@@ -44,12 +44,13 @@ public final class NatsTailScreen extends Screen {
     protected void init() {
         addRenderableWidget(new StringWidget(this.width / 2 - 150, 6, 300, 12, this.title, this.font));
 
-        subjectBox = new EditBox(this.font, this.width / 2 - 150, 22, 222, 20, Component.literal("subject"));
-        subjectBox.setHint(Component.literal("subject (e.g. > or match.>)"));
+        subjectBox = new EditBox(this.font, this.width / 2 - 150, 22, 222, 20,
+                Component.translatable("grounds_connect.nats.subject"));
+        subjectBox.setHint(Component.translatable("grounds_connect.nats.subjectHint"));
         subjectBox.setMaxLength(200);
         subjectBox.setValue(subjects);
         addRenderableWidget(subjectBox);
-        addRenderableWidget(Button.builder(Component.literal("Apply"), b -> restart())
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.nats.apply"), b -> restart())
                 .bounds(this.width / 2 + 76, 22, 74, 20).build());
 
         int listTop = 48;
@@ -57,10 +58,10 @@ public final class NatsTailScreen extends Screen {
         list = new LogConsoleScreen.LogList(this.minecraft, this.width, listHeight, listTop, this.font.lineHeight + 2);
         addRenderableWidget(list);
 
-        pauseBtn = Button.builder(Component.literal("Pause"), b -> togglePause())
+        pauseBtn = Button.builder(Component.translatable("grounds_connect.nats.pause"), b -> togglePause())
                 .bounds(this.width / 2 - 153, this.height - 28, 100, 20).build();
         addRenderableWidget(pauseBtn);
-        addRenderableWidget(Button.builder(Component.literal("Clear"), b -> {
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.nats.clear"), b -> {
             if (list != null) {
                 list.clear();
             }
@@ -96,7 +97,7 @@ public final class NatsTailScreen extends Screen {
             list.clear();
         }
         List<String> subs = parseSubjects();
-        addLine("== tail " + String.join(",", subs) + " ==");
+        addLine(Component.translatable("grounds_connect.nats.tailing", String.join(",", subs)).getString());
         GroundsSession.get().streamNatsTail(projectId, subs, new GroundsSession.NatsTailSink() {
             @Override
             public void onMessage(Nats.TailMessage m) {
@@ -116,7 +117,8 @@ public final class NatsTailScreen extends Screen {
 
     private void togglePause() {
         paused = !paused;
-        pauseBtn.setMessage(Component.literal(paused ? "Resume" : "Pause"));
+        pauseBtn.setMessage(Component.translatable(paused
+                ? "grounds_connect.nats.resume" : "grounds_connect.nats.pause"));
     }
 
     private void addLine(String line) {

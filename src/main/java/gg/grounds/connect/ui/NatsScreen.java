@@ -5,6 +5,7 @@ import gg.grounds.connect.api.Nats;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
@@ -23,7 +24,7 @@ public final class NatsScreen extends Screen {
     private LogConsoleScreen.LogList list;
 
     public NatsScreen(Screen parent, String projectId, String projectLabel) {
-        super(Component.literal("NATS · " + projectLabel));
+        super(Component.translatable("grounds_connect.nats.title", projectLabel));
         this.parent = parent;
         this.projectId = projectId;
         this.projectLabel = projectLabel;
@@ -32,9 +33,9 @@ public final class NatsScreen extends Screen {
     @Override
     protected void init() {
         addRenderableWidget(new StringWidget(this.width / 2 - 150, 6, 300, 12, this.title, this.font));
-        addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> load())
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.control.refresh"), b -> load())
                 .bounds(this.width / 2 - 102, 22, 100, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Live tail ▸"), b -> openTail())
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.nats.liveTail"), b -> openTail())
                 .bounds(this.width / 2 + 2, 22, 100, 20).build());
 
         int listTop = 46;
@@ -52,7 +53,7 @@ public final class NatsScreen extends Screen {
         if (list != null) {
             list.clear();
         }
-        addLine("Loading…");
+        addLine(Component.translatable("grounds_connect.nats.loading").getString());
         GroundsSession.get().fetchClusterNats(projectId, new GroundsSession.Callback<>() {
             @Override
             public void onResult(Nats.Snapshot snap) {
@@ -69,8 +70,8 @@ public final class NatsScreen extends Screen {
                 list.clear();
                 String m = error.getMessage() != null ? error.getMessage() : error.getClass().getSimpleName();
                 addLine(m.contains("404")
-                        ? "No active dev workspace for this project — push to create one."
-                        : "Could not load NATS: " + m);
+                        ? Component.translatable("grounds_connect.nats.noWorkspace").getString()
+                        : Component.translatable("grounds_connect.nats.error", m).getString());
             }
         });
     }
@@ -80,31 +81,32 @@ public final class NatsScreen extends Screen {
 
         Nats.Broker b = s.broker();
         if (b == null) {
-            addLine("Broker: unreachable");
+            addLine(I18n.get("grounds_connect.nats.broker.unreachable"));
         } else {
-            addLine("Broker: " + b.connections() + " conns · in " + b.inMsgs() + " msgs/" + human(b.inBytes())
-                    + " · out " + b.outMsgs() + " msgs/" + human(b.outBytes())
-                    + " · subs " + b.subscriptions()
-                    + (b.slowConsumers() > 0 ? " · slow " + b.slowConsumers() : ""));
+            addLine(I18n.get("grounds_connect.nats.broker.stats",
+                    b.connections(), b.inMsgs(), human(b.inBytes()), b.outMsgs(), human(b.outBytes()),
+                    b.subscriptions(), b.slowConsumers() > 0
+                            ? I18n.get("grounds_connect.nats.broker.slow", b.slowConsumers()) : ""));
         }
 
         addLine("");
         Nats.JetStream js = s.jetstream();
         if (js == null || js.streams() == 0) {
-            addLine("JetStream: no streams yet (core pub/sub)");
+            addLine(I18n.get("grounds_connect.nats.jetstream.empty"));
         } else {
-            addLine("JetStream: " + js.streams() + " streams · " + js.messages() + " msgs · " + human(js.bytes()));
+            addLine(I18n.get("grounds_connect.nats.jetstream.stats",
+                    js.streams(), js.messages(), human(js.bytes())));
             for (Nats.Stream st : js.list()) {
-                addLine("  " + st.name() + "  [" + String.join(", ", st.subjects()) + "]  msgs=" + st.messages()
-                        + " consumers=" + st.consumers());
+                addLine(I18n.get("grounds_connect.nats.jetstream.stream",
+                        st.name(), String.join(", ", st.subjects()), st.messages(), st.consumers()));
             }
         }
 
         addLine("");
         List<Nats.Event> events = s.events();
-        addLine("Declared events (" + events.size() + ")");
+        addLine(I18n.get("grounds_connect.nats.events.header", events.size()));
         if (events.isEmpty()) {
-            addLine("  (none declared)");
+            addLine(I18n.get("grounds_connect.nats.events.empty"));
         }
         for (Nats.Event e : events) {
             addLine("  " + e.app() + " · " + e.subject() + " · " + e.dir());
@@ -113,7 +115,7 @@ public final class NatsScreen extends Screen {
         addLine("");
         List<Nats.Conn> conns = s.connections();
         long appConns = conns.stream().filter(c -> !c.system()).count();
-        addLine("Connections (" + conns.size() + ", " + appConns + " app)");
+        addLine(I18n.get("grounds_connect.nats.connections.header", conns.size(), appConns));
         for (Nats.Conn c : conns) {
             String name = (c.name() == null || c.name().isBlank()) ? "cid#" + c.cid() : c.name();
             addLine("  " + (c.system() ? "[sys] " : "") + name + " · " + String.join(" ", c.subjects()));

@@ -40,7 +40,7 @@ public final class LogConsoleScreen extends Screen {
     private StringWidget shareStatus;
 
     public LogConsoleScreen(Screen parent, String deploymentName, String projectId) {
-        super(Component.literal("Logs · " + deploymentName));
+        super(Component.translatable("grounds_connect.logs.title", deploymentName));
         this.parent = parent;
         this.deploymentName = deploymentName;
         this.projectId = projectId;
@@ -50,9 +50,9 @@ public final class LogConsoleScreen extends Screen {
     protected void init() {
         addRenderableWidget(new StringWidget(this.width / 2 - 150, 6, 300, 12, this.title, this.font));
 
-        runtimeBtn = Button.builder(Component.literal("Runtime"), b -> setSource(Source.RUNTIME))
+        runtimeBtn = Button.builder(Component.translatable("grounds_connect.logs.runtime"), b -> setSource(Source.RUNTIME))
                 .bounds(this.width / 2 - 102, 22, 100, 20).build();
-        buildBtn = Button.builder(Component.literal("Build"), b -> setSource(Source.BUILD))
+        buildBtn = Button.builder(Component.translatable("grounds_connect.logs.build"), b -> setSource(Source.BUILD))
                 .bounds(this.width / 2 + 2, 22, 100, 20).build();
         addRenderableWidget(runtimeBtn);
         addRenderableWidget(buildBtn);
@@ -67,9 +67,9 @@ public final class LogConsoleScreen extends Screen {
         addRenderableWidget(shareStatus);
 
         int by = this.height - 28;
-        addRenderableWidget(Button.builder(Component.literal("Copy"), b -> copyAll())
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.logs.copy"), b -> copyAll())
                 .bounds(this.width / 2 - 153, by, 100, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Share"), b -> shareLogs())
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.logs.share"), b -> shareLogs())
                 .bounds(this.width / 2 - 50, by, 100, 20).build());
         addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, b -> onClose())
                 .bounds(this.width / 2 + 53, by, 100, 20).build());
@@ -104,7 +104,7 @@ public final class LogConsoleScreen extends Screen {
             String path = "/v1/deployments/" + enc(deploymentName) + "/logs?projectId=" + enc(projectId);
             GroundsSession.get().streamLogs(path, this::onLine, flag::get);
         } else {
-            addLine("== resolving latest build… ==");
+            addLine(Component.translatable("grounds_connect.logs.resolvingBuild").getString());
             GroundsSession.get().fetchLatestPush(deploymentName, projectId, new GroundsSession.Callback<>() {
                 @Override
                 public void onResult(Push push) {
@@ -112,7 +112,7 @@ public final class LogConsoleScreen extends Screen {
                         return;
                     }
                     if (push == null) {
-                        addLine("== no build found for this server ==");
+                        addLine(Component.translatable("grounds_connect.logs.noBuild").getString());
                         return;
                     }
                     GroundsSession.get().streamLogs("/v1/pushes/" + enc(push.id()) + "/logs", LogConsoleScreen.this::onLine, flag::get);
@@ -120,7 +120,7 @@ public final class LogConsoleScreen extends Screen {
 
                 @Override
                 public void onError(Throwable error) {
-                    addLine("== error: " + error.getMessage() + " ==");
+                    addLine(Component.translatable("grounds_connect.logs.error", error.getMessage()).getString());
                 }
             });
         }
@@ -158,19 +158,19 @@ public final class LogConsoleScreen extends Screen {
         if (content.isBlank()) {
             return;
         }
-        setShareStatus(Component.literal("Uploading to mclo.gs…"));
+        setShareStatus(Component.translatable("grounds_connect.logs.uploading"));
         Mclogs.uploadAsync(content, new Mclogs.Callback() {
             @Override
             public void onUrl(String url) {
                 if (minecraft != null) {
                     minecraft.keyboardHandler.setClipboard(url);
                 }
-                setShareStatus(Component.literal(url + "  (copied)"));
+                setShareStatus(Component.translatable("grounds_connect.logs.uploaded", url));
             }
 
             @Override
             public void onError(String message) {
-                setShareStatus(Component.literal("Upload failed: " + message));
+                setShareStatus(Component.translatable("grounds_connect.logs.uploadFailed", message));
             }
         });
     }
