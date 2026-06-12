@@ -6,11 +6,18 @@
   "description": "In-game developer tools for Grounds projects: sign in, browse servers, monitor deployments, stream logs, and connect to test environments from Minecraft.",
   "icon": "assets/grounds_connect/icon.png",
   "authors": [
-    "Grounds"
+    "Grounds Development Team"
+  ],
+  "contributors": [
+    "dahendriik",
+    "lusu007"
   ],
   "contact": {
     "homepage": "https://grounds.gg",
-    "sources": "https://github.com/groundsgg/grounds-connect"
+    "sources": "https://github.com/groundsgg/grounds-connect",
+    "issues": "https://github.com/groundsgg/grounds-connect/issues",
+    "discord": "https://discord.gg/UsAJXRxHYG",
+    "releases": "https://github.com/groundsgg/grounds-connect/releases"
   },
   "license": "Apache-2.0",
   "environment": "client",
