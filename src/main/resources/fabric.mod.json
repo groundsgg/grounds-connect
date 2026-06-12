@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "id": "grounds",
+  "id": "grounds_connect",
   "version": "${version}",
-  "name": "Grounds DevMod",
-  "description": "Log in to the Grounds platform from the main menu, pick a project, and browse that project's Minecraft servers — with live status, deploy toasts and log streaming — from a dedicated Grounds screen.",
-  "icon": "assets/grounds/icon.png",
+  "name": "Grounds Connect",
+  "description": "In-game developer tools for Grounds projects: sign in, browse servers, monitor deployments, stream logs, and connect to test environments from Minecraft.",
+  "icon": "assets/grounds_connect/icon.png",
   "authors": [
     "Grounds"
   ],
   "contact": {
     "homepage": "https://grounds.gg",
-    "sources": "https://github.com/groundsgg/grounds-devmod"
+    "sources": "https://github.com/groundsgg/grounds-connect"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "environment": "client",
   "entrypoints": {
     "client": [
-      "gg.grounds.serverlist.GroundsClient"
+      "gg.grounds.connect.GroundsClient"
     ]
   },
   "mixins": [
-    "grounds.mixins.json"
+    "grounds_connect.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.0",

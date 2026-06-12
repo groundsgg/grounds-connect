@@ -6,4 +6,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "grounds-serverlist"
+rootProject.name = "grounds-connect"
