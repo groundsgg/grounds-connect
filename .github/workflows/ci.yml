@@ -31,7 +31,7 @@ jobs:
         run: ./gradlew build
 
       - name: Upload mod jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: grounds-connect
           path: build/libs/grounds-connect-*.jar
