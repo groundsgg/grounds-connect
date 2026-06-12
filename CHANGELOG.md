@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/groundsgg/grounds-connect/compare/v0.2.2...v0.2.3) (2026-06-12)
+
+
+### Bug Fixes
+
+* **release:** attach mod jar to github releases ([#3](https://github.com/groundsgg/grounds-connect/issues/3)) ([a85da15](https://github.com/groundsgg/grounds-connect/commit/a85da156926e8c47f7cf9adcea5c1edc70300375))
+
 ## [0.2.2](https://github.com/groundsgg/grounds-connect/compare/v0.2.1...v0.2.2) (2026-06-12)
 
 
