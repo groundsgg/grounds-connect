@@ -57,7 +57,7 @@ public final class GroundsServersScreen extends Screen {
     private StringWidget status;
 
     public GroundsServersScreen(Screen lastScreen) {
-        super(Component.literal("Grounds Connect"));
+        super(Component.translatable("grounds_connect.title"));
         this.lastScreen = lastScreen;
     }
 
@@ -105,9 +105,9 @@ public final class GroundsServersScreen extends Screen {
         addRenderableWidget(status);
 
         int recoveryY = this.height - 52;
-        addRenderableWidget(Button.builder(Component.literal("Retry"), b -> retryBuild())
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.action.retry"), b -> retryBuild())
                 .bounds(this.width / 2 - 153, recoveryY, 100, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Rollback"), b -> rollbackSelected())
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.action.rollback"), b -> rollbackSelected())
                 .bounds(this.width / 2 - 50, recoveryY, 100, 20).build());
         addRenderableWidget(Button.builder(Component.literal("NATS"), b -> openNats())
                 .bounds(this.width / 2 + 53, recoveryY, 100, 20).build());
@@ -115,7 +115,7 @@ public final class GroundsServersScreen extends Screen {
         int by = this.height - 28;
         addRenderableWidget(Button.builder(Component.translatable("grounds_connect.action.join"), b -> joinSelected())
                 .bounds(this.width / 2 - 153, by, 100, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Logs"), b -> openLogs())
+        addRenderableWidget(Button.builder(Component.translatable("grounds_connect.action.logs"), b -> openLogs())
                 .bounds(this.width / 2 - 50, by, 100, 20).build());
         addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, b -> onClose())
                 .bounds(this.width / 2 + 53, by, 100, 20).build());
@@ -429,11 +429,11 @@ public final class GroundsServersScreen extends Screen {
     }
 
     private void wakeThenConnect(ServerEntry entry) {
-        setStatus(Component.literal("Waking " + entry.name + "…"));
+        setStatus(Component.translatable("grounds_connect.status.waking", entry.name));
         session.resumeAndAwait(entry.name, currentProjectId,
                 progress -> {
                     if (isCurrent()) {
-                        setStatus(Component.literal("Waking " + entry.name + "… " + progress));
+                        setStatus(Component.translatable("grounds_connect.status.wakingProgress", entry.name, progress));
                     }
                 },
                 () -> {
@@ -461,16 +461,16 @@ public final class GroundsServersScreen extends Screen {
         if (entry == null || currentProjectId == null) {
             return;
         }
-        setStatus(Component.literal("Retrying build for " + entry.name + "…"));
+        setStatus(Component.translatable("grounds_connect.status.retryingBuild", entry.name));
         session.retryLatestBuild(entry.name, currentProjectId,
                 () -> {
                     if (isCurrent()) {
-                        setStatus(Component.literal("Retry started — watch the toasts."));
+                        setStatus(Component.translatable("grounds_connect.status.retryStarted"));
                     }
                 },
                 error -> {
                     if (isCurrent()) {
-                        setStatus(Component.literal("Retry: " + error));
+                        setStatus(Component.translatable("grounds_connect.error.retry", error));
                     }
                 });
     }
@@ -483,7 +483,7 @@ public final class GroundsServersScreen extends Screen {
         Project project = session.selectedProject();
         String role = project != null ? project.role() : null;
         if (!"owner".equalsIgnoreCase(role) && !"editor".equalsIgnoreCase(role)) {
-            setStatus(Component.literal("Rollback requires the owner or editor role."));
+            setStatus(Component.translatable("grounds_connect.status.rollbackRoleRequired"));
             return;
         }
         this.minecraft.setScreen(new RollbackPickerScreen(this, entry.name, currentProjectId));
