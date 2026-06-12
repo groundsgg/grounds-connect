@@ -1,5 +1,5 @@
 plugins {
-    id("fabric-loom") version "1.16.3"
+    id("fabric-loom") version "1.17.11"
 }
 
 base { archivesName.set(project.property("archives_base_name") as String) }
@@ -21,8 +21,8 @@ dependencies {
     // modImplementation would fail trying to remap the fabric-api sources jar against the identity
     // mappings (there is no "named" namespace to target). Provided at runtime by the full
     // fabric-api (declared in fabric.mod.json), which the player's modpack ships.
-    implementation("net.fabricmc.fabric-api:fabric-key-mapping-api-v1:2.0.4+e2bdee784c")
-    implementation("net.fabricmc.fabric-api:fabric-lifecycle-events-v1:4.1.0+6d50a0854c")
+    implementation("net.fabricmc.fabric-api:fabric-key-mapping-api-v1:2.0.5+e2bdee7833")
+    implementation("net.fabricmc.fabric-api:fabric-lifecycle-events-v1:4.1.2+089d615a33")
 
     // Provided by fabric-loader at runtime; needed on the compile classpath for the Mixin
     // annotations (loom does not auto-inject it for this loader/MC combination).
