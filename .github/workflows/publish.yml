@@ -15,6 +15,23 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      version-type:
+        description: Modrinth version type for manual publishes.
+        type: choice
+        options:
+          - beta
+          - alpha
+          - release
+        default: beta
+      version:
+        description: Optional Modrinth version number. Defaults to mod_version for releases, otherwise mod_version-type.run_number.
+        required: false
+        type: string
+      changelog:
+        description: Optional Modrinth changelog for manual publishes. Falls back to CHANGELOG.md.
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -41,13 +58,58 @@ jobs:
       - name: Build
         run: ./gradlew build
 
+      - name: Resolve publish metadata
+        id: publish-meta
+        env:
+          RELEASE_NAME: ${{ github.event.release.name }}
+          MANUAL_VERSION: ${{ inputs.version }}
+          MANUAL_VERSION_TYPE: ${{ inputs['version-type'] }}
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            version="${GITHUB_REF_NAME}"
+            name="${RELEASE_NAME:-Grounds Connect ${GITHUB_REF_NAME}}"
+          else
+            base_version="$(sed -n 's/^mod_version=//p' gradle.properties)"
+            version_type="${MANUAL_VERSION_TYPE:-beta}"
+
+            if [ -n "$MANUAL_VERSION" ]; then
+              version="$MANUAL_VERSION"
+            elif [ "$version_type" = "release" ]; then
+              version="$base_version"
+            else
+              version="${base_version}-${version_type}.${GITHUB_RUN_NUMBER}"
+            fi
+
+            name="Grounds Connect ${version}"
+          fi
+
+          {
+            echo "version=${version}"
+            echo "name=${name}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Modrinth changelog
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+          MANUAL_CHANGELOG: ${{ inputs.changelog }}
+        run: |
+          if [ -n "$RELEASE_BODY" ]; then
+            printf '%s\n' "$RELEASE_BODY" > .modrinth-changelog.md
+          elif [ -n "$MANUAL_CHANGELOG" ]; then
+            printf '%s\n' "$MANUAL_CHANGELOG" > .modrinth-changelog.md
+          else
+            cp CHANGELOG.md .modrinth-changelog.md
+          fi
+
       - name: Publish to Modrinth
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ secrets.MODRINTH_PROJECT_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          files: build/libs/grounds-devmod-*.jar
-          version-type: release
-          changelog-file: CHANGELOG.md
+          files: build/libs/grounds-connect-*.jar
+          name: ${{ steps.publish-meta.outputs.name }}
+          version: ${{ steps.publish-meta.outputs.version }}
+          version-type: ${{ github.event_name == 'workflow_dispatch' && inputs['version-type'] || 'release' }}
+          changelog-file: .modrinth-changelog.md
           loaders: fabric
           game-versions: "26.1.2"

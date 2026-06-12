@@ -1,0 +1,38 @@
+{
+  "grounds_connect.control.login": "Grounds: Log in",
+  "grounds_connect.control.connecting": "Grounds: …",
+  "grounds_connect.control.refresh": "Refresh",
+  "grounds_connect.control.refresh.tooltip": "Reload this project's servers",
+  "grounds_connect.control.project.placeholder": "Project: —",
+  "grounds_connect.control.project.loading": "Project: loading…",
+  "grounds_connect.control.project.prefix": "Project",
+  "grounds_connect.menu.logout": "Log out",
+  "grounds_connect.menu.open": "Open Grounds",
+  "grounds_connect.action.join": "Join",
+  "grounds_connect.search.hint": "Search servers…",
+  "grounds_connect.platform.unreachable": "⚠ Grounds platform unreachable",
+  "key.grounds_connect.open": "Open Grounds Connect",
+
+
+  "grounds_connect.device.title": "Sign in to Grounds",
+  "grounds_connect.device.instructions": "Open this page in your browser and enter the code:",
+  "grounds_connect.device.url": "%s",
+  "grounds_connect.device.code": "Code: %s",
+  "grounds_connect.device.open": "Open page",
+  "grounds_connect.device.copyCode": "Copy code",
+  "grounds_connect.device.copyUrl": "Copy link",
+  "grounds_connect.device.waiting": "Waiting for you to authorize…",
+  "grounds_connect.device.requesting": "Requesting a login code…",
+  "grounds_connect.device.success": "Signed in. Loading your projects…",
+  "grounds_connect.device.copied": "Copied to clipboard.",
+  "grounds_connect.device.cancel": "Cancel",
+
+  "grounds_connect.status.loadingProjects": "Loading projects…",
+  "grounds_connect.status.loadingServers": "Loading servers…",
+  "grounds_connect.status.noProjects": "No projects on your account.",
+  "grounds_connect.status.noServers": "No Minecraft servers in this project.",
+  "grounds_connect.status.joinViaProxy": "This is a backend server — join it through the Velocity proxy.",
+  "grounds_connect.error.login": "Login failed: %s",
+  "grounds_connect.error.projects": "Could not load projects: %s",
+  "grounds_connect.error.servers": "Could not load servers: %s"
+}
