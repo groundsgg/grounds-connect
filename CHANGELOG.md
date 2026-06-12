@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/groundsgg/grounds-connect/compare/v0.2.3...v0.3.0) (2026-06-12)
+
+
+### Features
+
+* **i18n:** add german translations ([#7](https://github.com/groundsgg/grounds-connect/issues/7)) ([7d86852](https://github.com/groundsgg/grounds-connect/commit/7d86852f7e34f929dbab26010629002d1cc790fb))
+
+
+### Bug Fixes
+
+* **fabric:** complete mod metadata ([#5](https://github.com/groundsgg/grounds-connect/issues/5)) ([ffd81bc](https://github.com/groundsgg/grounds-connect/commit/ffd81bceb300dd470f89abb1d17afe18e5b03652))
+
 ## [0.2.3](https://github.com/groundsgg/grounds-connect/compare/v0.2.2...v0.2.3) (2026-06-12)
 
 
