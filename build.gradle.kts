@@ -1,5 +1,6 @@
 plugins {
     id("fabric-loom") version "1.17.11"
+    id("com.diffplug.spotless") version "8.6.0"
 }
 
 base { archivesName.set(project.property("archives_base_name") as String) }
@@ -39,6 +40,20 @@ java {
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(25)
     options.encoding = "UTF-8"
+}
+
+spotless {
+    java {
+        target("src/**/*.java")
+        googleJavaFormat("1.35.0")
+        removeUnusedImports()
+    }
+}
+
+tasks.register("format") {
+    group = "formatting"
+    description = "Formats Java sources."
+    dependsOn("spotlessApply")
 }
 
 tasks.processResources {
