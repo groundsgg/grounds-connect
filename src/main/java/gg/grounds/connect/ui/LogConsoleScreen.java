@@ -1,7 +1,8 @@
 package gg.grounds.connect.ui;
 
-import gg.grounds.connect.GroundsSession;
+import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.Push;
+import gg.grounds.connect.core.AsyncCallback;
 import gg.grounds.connect.util.Mclogs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -102,10 +103,10 @@ public final class LogConsoleScreen extends Screen {
         }
         if (source == Source.RUNTIME) {
             String path = "/v1/deployments/" + enc(deploymentName) + "/logs?projectId=" + enc(projectId);
-            GroundsSession.get().streamLogs(path, this::onLine, flag::get);
+            Grounds.services().logs().stream(path, this::onLine, flag::get);
         } else {
             addLine(Component.translatable("grounds_connect.logs.resolvingBuild").getString());
-            GroundsSession.get().fetchLatestPush(deploymentName, projectId, new GroundsSession.Callback<>() {
+            Grounds.services().deployments().fetchLatestPush(deploymentName, projectId, new AsyncCallback<>() {
                 @Override
                 public void onResult(Push push) {
                     if (source != Source.BUILD || !isCurrent() || flag.get()) {
@@ -115,7 +116,7 @@ public final class LogConsoleScreen extends Screen {
                         addLine(Component.translatable("grounds_connect.logs.noBuild").getString());
                         return;
                     }
-                    GroundsSession.get().streamLogs("/v1/pushes/" + enc(push.id()) + "/logs", LogConsoleScreen.this::onLine, flag::get);
+                    Grounds.services().logs().stream("/v1/pushes/" + enc(push.id()) + "/logs", LogConsoleScreen.this::onLine, flag::get);
                 }
 
                 @Override

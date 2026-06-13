@@ -1,6 +1,6 @@
 package gg.grounds.connect.mixin;
 
-import gg.grounds.connect.GroundsSession;
+import gg.grounds.connect.Grounds;
 import gg.grounds.connect.ui.DeviceCodeScreen;
 import gg.grounds.connect.ui.GroundsServersScreen;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -66,9 +66,8 @@ public abstract class TitleScreenMixin extends Screen {
 
     @Unique
     private void grounds$onClick() {
-        GroundsSession session = GroundsSession.get();
         Screen self = this;
-        if (session.isLoggedIn()) {
+        if (Grounds.services().auth().isLoggedIn()) {
             this.minecraft.setScreen(new GroundsServersScreen(self));
         } else {
             this.minecraft.setScreen(new DeviceCodeScreen(self,

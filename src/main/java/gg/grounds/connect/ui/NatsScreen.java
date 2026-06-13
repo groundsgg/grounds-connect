@@ -1,7 +1,8 @@
 package gg.grounds.connect.ui;
 
-import gg.grounds.connect.GroundsSession;
+import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.Nats;
+import gg.grounds.connect.core.AsyncCallback;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
@@ -54,7 +55,7 @@ public final class NatsScreen extends Screen {
             list.clear();
         }
         addLine(Component.translatable("grounds_connect.nats.loading").getString());
-        GroundsSession.get().fetchClusterNats(projectId, new GroundsSession.Callback<>() {
+        Grounds.services().nats().fetchCluster(projectId, new AsyncCallback<>() {
             @Override
             public void onResult(Nats.Snapshot snap) {
                 if (isCurrent()) {

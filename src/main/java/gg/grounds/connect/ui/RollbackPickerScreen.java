@@ -1,7 +1,8 @@
 package gg.grounds.connect.ui;
 
-import gg.grounds.connect.GroundsSession;
+import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.RollbackTarget;
+import gg.grounds.connect.core.AsyncCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -52,7 +53,7 @@ public final class RollbackPickerScreen extends Screen {
         if (!requested) {
             requested = true;
             setStatus(Component.translatable("grounds_connect.rollback.loading"));
-            GroundsSession.get().fetchRollbackTargets(deploymentName, projectId, new GroundsSession.Callback<>() {
+            Grounds.services().deployments().fetchRollbackTargets(deploymentName, projectId, new AsyncCallback<>() {
                 @Override
                 public void onResult(List<RollbackTarget> value) {
                     if (!isCurrent()) {
@@ -80,7 +81,7 @@ public final class RollbackPickerScreen extends Screen {
             return;
         }
         setStatus(Component.translatable("grounds_connect.rollback.running"));
-        GroundsSession.get().rollback(deploymentName, projectId, entry.target.id(),
+        Grounds.services().deployments().rollback(deploymentName, projectId, entry.target.id(),
                 () -> {
                     if (isCurrent()) {
                         this.minecraft.setScreen(parent);
