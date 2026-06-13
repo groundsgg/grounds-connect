@@ -99,8 +99,8 @@ Environment override: `GROUNDS_API_URL` takes precedence over `config.json`.
 
 A standalone `GroundsServersScreen` (not an injection into the vanilla list), opened from the only
 mixin that touches a vanilla menu (`TitleScreenMixin`); a `MinecraftMixin` redirects the post-leave
-screen. `GroundsSession` owns auth (device-code + token refresh) and all async forge calls
-(`ForgeApiClient`, including a generic mutator and an SSE streamer). The server list is a custom
-`ObjectSelectionList`, so health badges are drawn directly.
+screen. `Grounds.services()` exposes focused services for auth, projects, servers, deployments,
+logs, and NATS while shared background work and authenticated API calls stay in the core service
+layer. The server list is a custom `ObjectSelectionList`, so health badges are drawn directly.
 
 See [CHANGELOG.md](CHANGELOG.md) for the 0.1.0 feature list.

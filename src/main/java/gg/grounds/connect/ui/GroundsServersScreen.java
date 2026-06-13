@@ -1,10 +1,12 @@
 package gg.grounds.connect.ui;
 
-import gg.grounds.connect.GroundsSession;
+import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.DeploymentRuntime;
 import gg.grounds.connect.api.GroundsServer;
 import gg.grounds.connect.api.Project;
 import gg.grounds.connect.config.GroundsConfig;
+import gg.grounds.connect.core.AsyncCallback;
+import gg.grounds.connect.core.GroundsServices;
 import gg.grounds.connect.ui.GroundsServerList.ServerEntry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -35,7 +37,7 @@ import java.util.Locale;
 public final class GroundsServersScreen extends Screen {
 
     private final Screen lastScreen;
-    private final GroundsSession session = GroundsSession.get();
+    private final GroundsServices services = Grounds.services();
     private final ServerStatusPinger pinger = new ServerStatusPinger();
 
     private static final int RUNTIME_POLL_TICKS = 100;   // ~5s
@@ -125,8 +127,8 @@ public final class GroundsServersScreen extends Screen {
         // Only fetch on the first build — later rebuilds (resize, banner toggle) just repaint.
         if (!initialLoadDone) {
             initialLoadDone = true;
-            if (session.isLoggedIn()) {
-                if (session.cachedProjects().isEmpty() && !projectsRequested) {
+            if (services.auth().isLoggedIn()) {
+                if (services.projects().cachedProjects().isEmpty() && !projectsRequested) {
                     projectsRequested = true;
                     setStatus(Component.translatable("grounds_connect.status.loadingProjects"));
                     loadProjects();
@@ -140,15 +142,15 @@ public final class GroundsServersScreen extends Screen {
     }
 
     private AbstractWidget buildProjectButton(int y) {
-        Project selected = session.isLoggedIn() ? session.selectedProject() : null;
-        if (selected != null && !session.cachedProjects().isEmpty()) {
+        Project selected = services.auth().isLoggedIn() ? services.projects().selectedProject() : null;
+        if (selected != null && !services.projects().cachedProjects().isEmpty()) {
             return CycleButton.builder((Project p) -> Component.literal(p.displayName()), selected)
-                    .withValues(session.cachedProjects())
+                    .withValues(services.projects().cachedProjects())
                     .create(8, y, 180, 20, Component.translatable("grounds_connect.control.project.prefix"),
                             (btn, value) -> onProjectChosen(value));
         }
         Button placeholder = Button.builder(
-                        Component.translatable(session.isLoggedIn()
+                        Component.translatable(services.auth().isLoggedIn()
                                 ? "grounds_connect.control.project.loading" : "grounds_connect.control.project.placeholder"),
                         b -> {})
                 .bounds(8, y, 180, 20).build();
@@ -159,7 +161,7 @@ public final class GroundsServersScreen extends Screen {
     // --- data ---------------------------------------------------------------
 
     private void loadProjects() {
-        session.fetchProjects(new GroundsSession.Callback<>() {
+        services.projects().fetch(new AsyncCallback<>() {
             @Override
             public void onResult(List<Project> value) {
                 if (isCurrent()) {
@@ -178,7 +180,7 @@ public final class GroundsServersScreen extends Screen {
     }
 
     private void reloadServers() {
-        Project selected = session.isLoggedIn() ? session.selectedProject() : null;
+        Project selected = services.auth().isLoggedIn() ? services.projects().selectedProject() : null;
         if (selected == null) {
             entries = new ArrayList<>();
             topLevel = new ArrayList<>();
@@ -190,7 +192,7 @@ public final class GroundsServersScreen extends Screen {
         setStatus(Component.translatable("grounds_connect.status.loadingServers"));
         final String projectId = selected.id();
         this.currentProjectId = projectId;
-        session.fetchServers(projectId, new GroundsSession.Callback<>() {
+        services.servers().fetchServers(projectId, new AsyncCallback<>() {
             @Override
             public void onResult(List<GroundsServer> value) {
                 if (!isCurrent()) {
@@ -218,7 +220,7 @@ public final class GroundsServersScreen extends Screen {
                 pingAll(built);
                 setStatus(built.isEmpty() ? Component.translatable("grounds_connect.status.noServers") : null);
                 for (ServerEntry entry : built) {
-                    session.fetchRuntime(entry.name, projectId, new GroundsSession.Callback<>() {
+                    services.servers().fetchRuntime(entry.name, projectId, new AsyncCallback<>() {
                         @Override
                         public void onResult(DeploymentRuntime rt) {
                             entry.runtime = rt;
@@ -230,7 +232,7 @@ public final class GroundsServersScreen extends Screen {
                         }
                     });
                 }
-                session.watchInFlightPushes(projectId, DeployToasts::onStatus);
+                services.pushes().watchInFlightPushes(projectId, DeployToasts::onStatus);
             }
 
             @Override
@@ -342,7 +344,7 @@ public final class GroundsServersScreen extends Screen {
             refreshRuntimes();
         }
         if (tickCounter % READINESS_POLL_TICKS == 0) {
-            session.pollPlatformReadiness(this::setPlatformReady);
+            pollPlatformReadiness();
         }
     }
 
@@ -383,7 +385,7 @@ public final class GroundsServersScreen extends Screen {
             return;
         }
         for (ServerEntry entry : entries) {
-            session.fetchRuntime(entry.name, projectId, new GroundsSession.Callback<>() {
+            services.servers().fetchRuntime(entry.name, projectId, new AsyncCallback<>() {
                 @Override
                 public void onResult(DeploymentRuntime rt) {
                     entry.runtime = rt;
@@ -395,13 +397,13 @@ public final class GroundsServersScreen extends Screen {
                 }
             });
         }
-        session.watchInFlightPushes(projectId, DeployToasts::onStatus);
+        services.pushes().watchInFlightPushes(projectId, DeployToasts::onStatus);
     }
 
     // --- actions ------------------------------------------------------------
 
     private void onProjectChosen(Project project) {
-        session.selectProject(project);
+        services.projects().selectProject(project);
         reloadServers();
     }
 
@@ -423,14 +425,14 @@ public final class GroundsServersScreen extends Screen {
     }
 
     private void connect(ServerEntry entry) {
-        session.markGroundsJoin(entry.address);
+        services.servers().markGroundsJoin(entry.address);
         ConnectScreen.startConnecting(this, this.minecraft,
                 ServerAddress.parseString(entry.address), entry.data, false, null);
     }
 
     private void wakeThenConnect(ServerEntry entry) {
         setStatus(Component.translatable("grounds_connect.status.waking", entry.name));
-        session.resumeAndAwait(entry.name, currentProjectId,
+        services.servers().resumeAndAwait(entry.name, currentProjectId,
                 progress -> {
                     if (isCurrent()) {
                         setStatus(Component.translatable("grounds_connect.status.wakingProgress", entry.name, progress));
@@ -462,7 +464,7 @@ public final class GroundsServersScreen extends Screen {
             return;
         }
         setStatus(Component.translatable("grounds_connect.status.retryingBuild", entry.name));
-        session.retryLatestBuild(entry.name, currentProjectId,
+        services.deployments().retryLatestBuild(entry.name, currentProjectId,
                 () -> {
                     if (isCurrent()) {
                         setStatus(Component.translatable("grounds_connect.status.retryStarted"));
@@ -480,7 +482,7 @@ public final class GroundsServersScreen extends Screen {
         if (entry == null || currentProjectId == null) {
             return;
         }
-        Project project = session.selectedProject();
+        Project project = services.projects().selectedProject();
         String role = project != null ? project.role() : null;
         if (!"owner".equalsIgnoreCase(role) && !"editor".equalsIgnoreCase(role)) {
             setStatus(Component.translatable("grounds_connect.status.rollbackRoleRequired"));
@@ -491,7 +493,7 @@ public final class GroundsServersScreen extends Screen {
 
     /** Opens the project's NATS view (broker/streams/events snapshot + live tail). Project-scoped. */
     private void openNats() {
-        Project selected = session.selectedProject();
+        Project selected = services.projects().selectedProject();
         if (selected == null || currentProjectId == null) {
             setStatus(Component.translatable("grounds_connect.status.noProjects"));
             return;
@@ -500,7 +502,7 @@ public final class GroundsServersScreen extends Screen {
     }
 
     private void logout() {
-        session.logout();
+        services.logout();
         this.minecraft.setScreen(new TitleScreen());
     }
 
@@ -516,6 +518,14 @@ public final class GroundsServersScreen extends Screen {
     private void setStatus(Component message) {
         statusMessage = message == null ? Component.empty() : message;
         status.setMessage(statusMessage);
+    }
+
+    private void pollPlatformReadiness() {
+        services.platform().pollReadiness(ready -> {
+            if (isCurrent()) {
+                setPlatformReady(ready);
+            }
+        });
     }
 
     private static String msg(Throwable t) {

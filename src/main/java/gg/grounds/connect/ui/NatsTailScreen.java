@@ -1,7 +1,8 @@
 package gg.grounds.connect.ui;
 
-import gg.grounds.connect.GroundsSession;
+import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.Nats;
+import gg.grounds.connect.nats.NatsTailSink;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.StringWidget;
@@ -98,7 +99,7 @@ public final class NatsTailScreen extends Screen {
         }
         List<String> subs = parseSubjects();
         addLine(Component.translatable("grounds_connect.nats.tailing", String.join(",", subs)).getString());
-        GroundsSession.get().streamNatsTail(projectId, subs, new GroundsSession.NatsTailSink() {
+        Grounds.services().nats().tail(projectId, subs, new NatsTailSink() {
             @Override
             public void onMessage(Nats.TailMessage m) {
                 if (isCurrent() && !flag.get() && !paused) {

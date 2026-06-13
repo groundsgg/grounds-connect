@@ -1,6 +1,6 @@
 package gg.grounds.connect.mixin;
 
-import gg.grounds.connect.GroundsSession;
+import gg.grounds.connect.Grounds;
 import gg.grounds.connect.ui.GroundsServersScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -27,7 +27,7 @@ public abstract class MinecraftMixin {
     @Inject(method = "disconnectFromWorld", at = @At("HEAD"))
     private void grounds$captureLeave(Component reason, CallbackInfo ci) {
         ServerData current = ((Minecraft) (Object) this).getCurrentServer();
-        grounds$leftGroundsServer = current != null && GroundsSession.get().isGroundsAddress(current.ip);
+        grounds$leftGroundsServer = current != null && Grounds.services().servers().isGroundsAddress(current.ip);
     }
 
     @Inject(method = "disconnectFromWorld", at = @At("TAIL"))

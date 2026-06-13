@@ -25,8 +25,8 @@ public final class GroundsClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         GroundsConfig.get().load();
-        GroundsSession.get().loadFromStore();
-        GroundsSession.get().startDeployWatcher(DeployToasts::onStatus);
+        Grounds.services().auth().loadFromStore();
+        Grounds.services().pushes().start(DeployToasts::onStatus);
 
         KeyMappingHelper.registerKeyMapping(OPEN_KEY);
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -36,13 +36,13 @@ public final class GroundsClient implements ClientModInitializer {
         });
 
         Constants.LOG.info("[{}] ready (api={}, loggedIn={})",
-                Constants.MOD_NAME, GroundsConfig.get().apiBaseUrl(), GroundsSession.get().isLoggedIn());
+                Constants.MOD_NAME, GroundsConfig.get().apiBaseUrl(), Grounds.services().auth().isLoggedIn());
     }
 
     /** Opens the Grounds screen (logging in first if needed); closing it returns where we came from. */
     private static void openGroundsScreen(Minecraft client) {
         Screen back = client.screen; // null when in-game, so Back returns to gameplay
-        if (GroundsSession.get().isLoggedIn()) {
+        if (Grounds.services().auth().isLoggedIn()) {
             client.setScreen(new GroundsServersScreen(back));
         } else {
             client.setScreen(new DeviceCodeScreen(back,

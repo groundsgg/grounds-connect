@@ -1,6 +1,8 @@
 package gg.grounds.connect.ui;
 
-import gg.grounds.connect.GroundsSession;
+import gg.grounds.connect.Grounds;
+import gg.grounds.connect.auth.LoginHandle;
+import gg.grounds.connect.auth.LoginListener;
 import gg.grounds.connect.auth.KeycloakClient;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
@@ -18,7 +20,7 @@ public final class DeviceCodeScreen extends Screen {
 
     private final Screen parent;
     private final Runnable onComplete;
-    private GroundsSession.LoginHandle handle;
+    private LoginHandle handle;
     private KeycloakClient.DeviceCode code;
     private Component status = Component.translatable("grounds_connect.device.requesting");
     private boolean started;
@@ -69,7 +71,7 @@ public final class DeviceCodeScreen extends Screen {
 
         if (!started) {
             started = true;
-            handle = GroundsSession.get().startLogin(new GroundsSession.LoginListener() {
+            handle = Grounds.services().auth().startLogin(new LoginListener() {
                 @Override
                 public void onCode(KeycloakClient.DeviceCode c) {
                     code = c;
