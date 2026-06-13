@@ -1,8 +1,9 @@
-package gg.grounds.connect.ui;
+package gg.grounds.connect.ui.nats;
 
 import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.Nats;
 import gg.grounds.connect.core.AsyncCallback;
+import gg.grounds.connect.ui.logs.LogLineList;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
@@ -22,7 +23,7 @@ public final class NatsScreen extends Screen {
     private final Screen parent;
     private final String projectId;
     private final String projectLabel;
-    private LogConsoleScreen.LogList list;
+    private LogLineList list;
 
     public NatsScreen(Screen parent, String projectId, String projectLabel) {
         super(Component.translatable("grounds_connect.nats.title", projectLabel));
@@ -41,7 +42,7 @@ public final class NatsScreen extends Screen {
 
         int listTop = 46;
         int listHeight = Math.max(20, this.height - 34 - listTop);
-        list = new LogConsoleScreen.LogList(this.minecraft, this.width, listHeight, listTop, this.font.lineHeight + 2);
+        list = new LogLineList(this.minecraft, this.width, listHeight, listTop, this.font.lineHeight + 2);
         addRenderableWidget(list);
 
         addRenderableWidget(Button.builder(CommonComponents.GUI_BACK, b -> onClose())

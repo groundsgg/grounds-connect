@@ -2,7 +2,7 @@ package gg.grounds.connect.mixin;
 
 import gg.grounds.connect.Grounds;
 import gg.grounds.connect.ui.DeviceCodeScreen;
-import gg.grounds.connect.ui.GroundsServersScreen;
+import gg.grounds.connect.ui.servers.GroundsServersScreen;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;

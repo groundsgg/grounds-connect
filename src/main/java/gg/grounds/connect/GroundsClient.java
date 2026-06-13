@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import gg.grounds.connect.config.GroundsConfig;
 import gg.grounds.connect.ui.DeployToasts;
 import gg.grounds.connect.ui.DeviceCodeScreen;
-import gg.grounds.connect.ui.GroundsServersScreen;
+import gg.grounds.connect.ui.servers.GroundsServersScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
