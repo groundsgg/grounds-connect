@@ -7,6 +7,7 @@ import gg.grounds.connect.api.Push;
 import gg.grounds.connect.auth.AuthService;
 import gg.grounds.connect.core.AuthenticatedApi;
 import gg.grounds.connect.core.ClientTaskRunner;
+import gg.grounds.connect.core.SessionLifecycle;
 import gg.grounds.connect.project.ProjectService;
 import java.util.List;
 import java.util.Set;
@@ -19,15 +20,21 @@ public final class PushWatcher {
   private final AuthenticatedApi api;
   private final AuthService auth;
   private final ProjectService projects;
+  private final SessionLifecycle lifecycle;
   private final Set<String> watchedPushes = ConcurrentHashMap.newKeySet();
   private volatile boolean started;
 
   public PushWatcher(
-      ClientTaskRunner runner, AuthenticatedApi api, AuthService auth, ProjectService projects) {
+      ClientTaskRunner runner,
+      AuthenticatedApi api,
+      AuthService auth,
+      ProjectService projects,
+      SessionLifecycle lifecycle) {
     this.runner = runner;
     this.api = api;
     this.auth = auth;
     this.projects = projects;
+    this.lifecycle = lifecycle;
   }
 
   /** Background poller: shows build/deploy toasts even when the Grounds screen is closed. */
@@ -79,10 +86,14 @@ public final class PushWatcher {
         });
   }
 
+  public void clearWatchedPushes() {
+    watchedPushes.clear();
+  }
+
   private void streamPush(Push push, PushStatusSink sink) {
     runner.execute(
         () -> {
-          try {
+          try (SessionLifecycle.Lease lease = lifecycle.openLease()) {
             runner.onClient(() -> sink.onStatus(push.id(), push.appName(), push.status()));
             String token = api.withAuthRetry(t -> t);
             api.api()
@@ -97,7 +108,8 @@ public final class PushWatcher {
                         }
                       }
                     },
-                    () -> false);
+                    lease::isCancelled,
+                    lease::closeOnCancel);
           } catch (Throwable t) {
             Constants.LOG.debug("[grounds] push stream {} ended: {}", push.id(), t.toString());
           } finally {

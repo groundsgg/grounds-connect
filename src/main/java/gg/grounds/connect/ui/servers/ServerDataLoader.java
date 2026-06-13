@@ -5,7 +5,7 @@ import gg.grounds.connect.api.GroundsServer;
 import gg.grounds.connect.api.Project;
 import gg.grounds.connect.core.AsyncCallback;
 import gg.grounds.connect.core.GroundsServices;
-import gg.grounds.connect.ui.DeployToasts;
+import gg.grounds.connect.core.RequestCoalescer;
 import java.util.List;
 
 final class ServerDataLoader {
@@ -29,6 +29,7 @@ final class ServerDataLoader {
 
   private final GroundsServices services;
   private final Listener listener;
+  private final RequestCoalescer runtimeRequests = new RequestCoalescer();
 
   ServerDataLoader(GroundsServices services, Listener listener) {
     this.services = services;
@@ -77,6 +78,9 @@ final class ServerDataLoader {
       return;
     }
     for (ServerEntry entry : entries) {
+      if (!runtimeRequests.begin(projectId, entry.name)) {
+        continue;
+      }
       services
           .servers()
           .fetchRuntime(
@@ -85,16 +89,17 @@ final class ServerDataLoader {
               new AsyncCallback<>() {
                 @Override
                 public void onResult(DeploymentRuntime rt) {
+                  runtimeRequests.finish(projectId, entry.name);
                   listener.onRuntimeResult(projectId, entry, rt);
                 }
 
                 @Override
                 public void onError(Throwable error) {
+                  runtimeRequests.finish(projectId, entry.name);
                   listener.onRuntimeError(projectId, entry, error);
                 }
               });
     }
-    services.pushes().watchInFlightPushes(projectId, DeployToasts::onStatus);
   }
 
   void pollPlatformReadiness() {
