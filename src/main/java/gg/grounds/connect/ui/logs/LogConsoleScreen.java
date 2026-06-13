@@ -1,14 +1,10 @@
-package gg.grounds.connect.ui;
+package gg.grounds.connect.ui.logs;
 
 import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.Push;
 import gg.grounds.connect.core.AsyncCallback;
 import gg.grounds.connect.util.Mclogs;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
@@ -35,7 +31,7 @@ public final class LogConsoleScreen extends Screen {
 
     private Source source = Source.RUNTIME;
     private AtomicBoolean streamCancelled;
-    private LogList list;
+    private LogLineList list;
     private Button runtimeBtn;
     private Button buildBtn;
     private StringWidget shareStatus;
@@ -61,7 +57,7 @@ public final class LogConsoleScreen extends Screen {
 
         int listTop = 46;
         int listHeight = Math.max(20, this.height - 48 - listTop);
-        list = new LogList(this.minecraft, this.width, listHeight, listTop, this.font.lineHeight + 2);
+        list = new LogLineList(this.minecraft, this.width, listHeight, listTop, this.font.lineHeight + 2);
         addRenderableWidget(list);
 
         shareStatus = new StringWidget(this.width / 2 - 150, this.height - 42, 300, 12, Component.empty(), this.font);
@@ -203,53 +199,5 @@ public final class LogConsoleScreen extends Screen {
 
     private static String enc(String s) {
         return URLEncoder.encode(s == null ? "" : s, StandardCharsets.UTF_8);
-    }
-
-    static final class LogList extends ObjectSelectionList<LogList.Line> {
-
-        LogList(Minecraft mc, int width, int height, int top, int itemHeight) {
-            super(mc, width, height, top, itemHeight);
-        }
-
-        @Override
-        public int getRowWidth() {
-            return this.getWidth() - 12;
-        }
-
-        void addLine(String text) {
-            addEntry(new Line(text));
-        }
-
-        void clear() {
-            clearEntries();
-        }
-
-        String joined() {
-            StringBuilder sb = new StringBuilder();
-            for (Line line : this.children()) {
-                sb.append(line.text).append('\n');
-            }
-            return sb.toString();
-        }
-
-        static final class Line extends ObjectSelectionList.Entry<Line> {
-
-            final String text;
-
-            Line(String text) {
-                this.text = text;
-            }
-
-            @Override
-            public Component getNarration() {
-                return Component.literal(text);
-            }
-
-            @Override
-            public void extractContent(GuiGraphicsExtractor extractor, int mouseX, int mouseY, boolean hovered, float partialTick) {
-                Font font = Minecraft.getInstance().font;
-                extractor.text(font, text, getContentX() + 2, getContentY() + 1, 0xFFE0E0E0);
-            }
-        }
     }
 }

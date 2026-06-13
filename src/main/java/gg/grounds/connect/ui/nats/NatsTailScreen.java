@@ -1,8 +1,9 @@
-package gg.grounds.connect.ui;
+package gg.grounds.connect.ui.nats;
 
 import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.Nats;
 import gg.grounds.connect.nats.NatsTailSink;
+import gg.grounds.connect.ui.logs.LogLineList;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.StringWidget;
@@ -28,7 +29,7 @@ public final class NatsTailScreen extends Screen {
     private final String projectLabel;
 
     private EditBox subjectBox;
-    private LogConsoleScreen.LogList list;
+    private LogLineList list;
     private Button pauseBtn;
     private AtomicBoolean streamCancelled;
     private boolean paused;
@@ -56,7 +57,7 @@ public final class NatsTailScreen extends Screen {
 
         int listTop = 48;
         int listHeight = Math.max(20, this.height - 34 - listTop);
-        list = new LogConsoleScreen.LogList(this.minecraft, this.width, listHeight, listTop, this.font.lineHeight + 2);
+        list = new LogLineList(this.minecraft, this.width, listHeight, listTop, this.font.lineHeight + 2);
         addRenderableWidget(list);
 
         pauseBtn = Button.builder(Component.translatable("grounds_connect.nats.pause"), b -> togglePause())

@@ -1,7 +1,7 @@
 package gg.grounds.connect.mixin;
 
 import gg.grounds.connect.Grounds;
-import gg.grounds.connect.ui.GroundsServersScreen;
+import gg.grounds.connect.ui.servers.GroundsServersScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.multiplayer.ServerData;
