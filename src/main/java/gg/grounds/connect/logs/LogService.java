@@ -3,16 +3,19 @@ package gg.grounds.connect.logs;
 import com.google.gson.JsonParser;
 import gg.grounds.connect.core.AuthenticatedApi;
 import gg.grounds.connect.core.ClientTaskRunner;
+import gg.grounds.connect.core.SessionLifecycle;
 import java.util.function.BooleanSupplier;
 
 /** Tails Grounds SSE log endpoints. */
 public final class LogService {
   private final ClientTaskRunner runner;
   private final AuthenticatedApi api;
+  private final SessionLifecycle lifecycle;
 
-  public LogService(ClientTaskRunner runner, AuthenticatedApi api) {
+  public LogService(ClientTaskRunner runner, AuthenticatedApi api, SessionLifecycle lifecycle) {
     this.runner = runner;
     this.api = api;
+    this.lifecycle = lifecycle;
   }
 
   /**
@@ -22,7 +25,8 @@ public final class LogService {
   public void stream(String path, LogSink sink, BooleanSupplier cancelled) {
     runner.execute(
         () -> {
-          try {
+          SessionLifecycle.Lease lease = lifecycle.openLease();
+          try (lease) {
             String token = api.withAuthRetry(t -> t);
             api.api()
                 .streamSse(
@@ -40,10 +44,15 @@ public final class LogService {
                         runner.onClient(() -> sink.onLine(line));
                       }
                     },
-                    cancelled);
-            runner.onClient(() -> sink.onLine("== stream ended =="));
+                    () -> cancelled.getAsBoolean() || lease.isCancelled(),
+                    lease::closeOnCancel);
+            if (!cancelled.getAsBoolean() && !lease.isCancelled()) {
+              runner.onClient(() -> sink.onLine("== stream ended =="));
+            }
           } catch (Throwable t) {
-            runner.onClient(() -> sink.onLine("== error: " + t.getMessage() + " =="));
+            if (!cancelled.getAsBoolean() && !lease.isCancelled()) {
+              runner.onClient(() -> sink.onLine("== error: " + t.getMessage() + " =="));
+            }
           }
         });
   }

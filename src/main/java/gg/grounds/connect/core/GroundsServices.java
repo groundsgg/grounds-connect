@@ -11,15 +11,16 @@ import gg.grounds.connect.server.ServerService;
 /** Shared service graph for Grounds client features. */
 public final class GroundsServices {
   private final ClientTaskRunner runner = new ClientTaskRunner();
+  private final SessionLifecycle lifecycle = new SessionLifecycle();
   private final AuthService auth = new AuthService(runner);
   private final AuthenticatedApi api = new AuthenticatedApi(auth);
   private final PlatformService platform = new PlatformService(runner, api);
   private final ProjectService projects = new ProjectService(runner, api);
-  private final ServerService servers = new ServerService(runner, api);
+  private final ServerService servers = new ServerService(runner, api, lifecycle);
   private final DeploymentService deployments = new DeploymentService(runner, api);
-  private final PushWatcher pushes = new PushWatcher(runner, api, auth, projects);
-  private final LogService logs = new LogService(runner, api);
-  private final NatsService nats = new NatsService(runner, api);
+  private final PushWatcher pushes = new PushWatcher(runner, api, auth, projects, lifecycle);
+  private final LogService logs = new LogService(runner, api, lifecycle);
+  private final NatsService nats = new NatsService(runner, api, lifecycle);
 
   public AuthService auth() {
     return auth;
@@ -54,6 +55,9 @@ public final class GroundsServices {
   }
 
   public void logout() {
+    lifecycle.reset();
+    pushes.clearWatchedPushes();
+    servers.clearGroundsJoin();
     auth.logout();
     projects.clearCache();
   }

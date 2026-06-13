@@ -5,6 +5,7 @@ import gg.grounds.connect.api.Nats;
 import gg.grounds.connect.core.AsyncCallback;
 import gg.grounds.connect.core.AuthenticatedApi;
 import gg.grounds.connect.core.ClientTaskRunner;
+import gg.grounds.connect.core.SessionLifecycle;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -14,10 +15,12 @@ import java.util.function.BooleanSupplier;
 public final class NatsService {
   private final ClientTaskRunner runner;
   private final AuthenticatedApi api;
+  private final SessionLifecycle lifecycle;
 
-  public NatsService(ClientTaskRunner runner, AuthenticatedApi api) {
+  public NatsService(ClientTaskRunner runner, AuthenticatedApi api, SessionLifecycle lifecycle) {
     this.runner = runner;
     this.api = api;
+    this.lifecycle = lifecycle;
   }
 
   /** {@code GET /v1/cluster/nats} — broker stats, declared events, connections, JetStream. */
@@ -42,7 +45,8 @@ public final class NatsService {
       String projectId, List<String> subjects, NatsTailSink sink, BooleanSupplier cancelled) {
     runner.execute(
         () -> {
-          try {
+          SessionLifecycle.Lease lease = lifecycle.openLease();
+          try (lease) {
             StringBuilder path =
                 new StringBuilder("/v1/cluster/nats/tail?projectId=")
                     .append(URLEncoder.encode(projectId, StandardCharsets.UTF_8));
@@ -75,10 +79,15 @@ public final class NatsService {
                         default -> {}
                       }
                     },
-                    cancelled);
-            runner.onClient(() -> sink.onInfo("== tail ended =="));
+                    () -> cancelled.getAsBoolean() || lease.isCancelled(),
+                    lease::closeOnCancel);
+            if (!cancelled.getAsBoolean() && !lease.isCancelled()) {
+              runner.onClient(() -> sink.onInfo("== tail ended =="));
+            }
           } catch (Throwable t) {
-            runner.onClient(() -> sink.onInfo("== error: " + message(t) + " =="));
+            if (!cancelled.getAsBoolean() && !lease.isCancelled()) {
+              runner.onClient(() -> sink.onInfo("== error: " + message(t) + " =="));
+            }
           }
         });
   }

@@ -5,6 +5,7 @@ import gg.grounds.connect.api.GroundsServer;
 import gg.grounds.connect.core.AsyncCallback;
 import gg.grounds.connect.core.AuthenticatedApi;
 import gg.grounds.connect.core.ClientTaskRunner;
+import gg.grounds.connect.core.SessionLifecycle;
 import java.time.Instant;
 import java.util.List;
 import java.util.function.Consumer;
@@ -13,11 +14,13 @@ import java.util.function.Consumer;
 public final class ServerService {
   private final ClientTaskRunner runner;
   private final AuthenticatedApi api;
+  private final SessionLifecycle lifecycle;
   private volatile String lastJoinedGroundsAddress;
 
-  public ServerService(ClientTaskRunner runner, AuthenticatedApi api) {
+  public ServerService(ClientTaskRunner runner, AuthenticatedApi api, SessionLifecycle lifecycle) {
     this.runner = runner;
     this.api = api;
+    this.lifecycle = lifecycle;
   }
 
   public void fetchServers(String projectId, AsyncCallback<List<GroundsServer>> cb) {
@@ -55,14 +58,14 @@ public final class ServerService {
       Consumer<String> onError) {
     runner.execute(
         () -> {
-          try {
+          try (SessionLifecycle.Lease lease = lifecycle.openLease()) {
             api.withAuthRetry(
                 token -> {
                   api.api().resume(token, name, projectId);
                   return Boolean.TRUE;
                 });
             long deadline = Instant.now().getEpochSecond() + 90;
-            while (Instant.now().getEpochSecond() < deadline) {
+            while (!lease.isCancelled() && Instant.now().getEpochSecond() < deadline) {
               DeploymentRuntime rt =
                   api.withAuthRetry(token -> api.api().getRuntime(token, name, projectId));
               runner.onClient(
@@ -73,7 +76,9 @@ public final class ServerService {
               }
               Thread.sleep(2000);
             }
-            runner.onClient(onReady);
+            if (!lease.isCancelled()) {
+              runner.onClient(onReady);
+            }
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
           } catch (Throwable t) {
@@ -90,6 +95,10 @@ public final class ServerService {
   public boolean isGroundsAddress(String address) {
     String a = lastJoinedGroundsAddress;
     return a != null && a.equalsIgnoreCase(address);
+  }
+
+  public void clearGroundsJoin() {
+    lastJoinedGroundsAddress = null;
   }
 
   private static String message(Throwable t) {

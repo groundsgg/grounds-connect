@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * REST client for the forge platform API ({@code GET /v1/projects}, {@code GET /v1/deployments}).
@@ -457,6 +459,16 @@ public final class ForgeApiClient {
       SseHandler handler,
       java.util.function.BooleanSupplier cancelled)
       throws Exception {
+    streamSse(accessToken, path, handler, cancelled, ignored -> {});
+  }
+
+  public void streamSse(
+      String accessToken,
+      String path,
+      SseHandler handler,
+      java.util.function.BooleanSupplier cancelled,
+      Consumer<AutoCloseable> closeOnCancel)
+      throws Exception {
     HttpRequest req =
         HttpRequest.newBuilder(URI.create(baseUrl + path))
             .timeout(Duration.ofMinutes(10))
@@ -464,32 +476,34 @@ public final class ForgeApiClient {
             .header("Accept", "text/event-stream")
             .GET()
             .build();
-    HttpResponse<java.util.stream.Stream<String>> res =
-        http.send(req, HttpResponse.BodyHandlers.ofLines());
+    HttpResponse<Stream<String>> res = http.send(req, HttpResponse.BodyHandlers.ofLines());
     if (res.statusCode() / 100 != 2) {
       throw new ForgeApiException(res.statusCode(), "SSE " + path + " -> HTTP " + res.statusCode());
     }
     String event = "message";
     StringBuilder data = new StringBuilder();
-    java.util.Iterator<String> it = res.body().iterator();
-    while (it.hasNext()) {
-      if (cancelled.getAsBoolean()) {
-        break;
-      }
-      String line = it.next();
-      if (line.isEmpty()) {
-        if (data.length() > 0) {
-          handler.onEvent(event, data.toString());
+    try (Stream<String> lines = res.body()) {
+      closeOnCancel.accept(lines);
+      java.util.Iterator<String> it = lines.iterator();
+      while (it.hasNext()) {
+        if (cancelled.getAsBoolean()) {
+          break;
         }
-        event = "message";
-        data.setLength(0);
-      } else if (line.startsWith("event:")) {
-        event = line.substring(6).trim();
-      } else if (line.startsWith("data:")) {
-        if (data.length() > 0) {
-          data.append('\n');
+        String line = it.next();
+        if (line.isEmpty()) {
+          if (data.length() > 0) {
+            handler.onEvent(event, data.toString());
+          }
+          event = "message";
+          data.setLength(0);
+        } else if (line.startsWith("event:")) {
+          event = line.substring(6).trim();
+        } else if (line.startsWith("data:")) {
+          if (data.length() > 0) {
+            data.append('\n');
+          }
+          data.append(line.substring(5).trim());
         }
-        data.append(line.substring(5).trim());
       }
     }
   }

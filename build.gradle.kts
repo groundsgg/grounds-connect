@@ -28,6 +28,9 @@ dependencies {
     // Provided by fabric-loader at runtime; needed on the compile classpath for the Mixin
     // annotations (loom does not auto-inject it for this loader/MC combination).
     implementation("net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {
@@ -40,6 +43,10 @@ java {
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(25)
     options.encoding = "UTF-8"
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 spotless {
