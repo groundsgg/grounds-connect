@@ -1,4 +1,4 @@
-preserve_hierarchy: true
+preserve_hierarchy: 1
 files:
   - source: /src/main/resources/assets/grounds_connect/lang/en_us.json
     translation: /src/main/resources/assets/grounds_connect/lang/%locale_with_underscore%.json
