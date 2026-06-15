@@ -5,3 +5,5 @@ files:
     languages_mapping:
       locale_with_underscore:
         de: de_de
+        es-ES: es_es
+        fr: fr_fr
