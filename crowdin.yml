@@ -1,5 +1,5 @@
 preserve_hierarchy: 1
-pull_request_title: "chore(i18n): update translations"
+pull_request_title: 'chore(i18n): update translations'
 files:
   - source: /src/main/resources/assets/grounds_connect/lang/en_us.json
     translation: /src/main/resources/assets/grounds_connect/lang/%locale_with_underscore%.json
