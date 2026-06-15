@@ -8,15 +8,8 @@ on:
         required: false
         type: boolean
         default: false
-  push:
-    branches:
-      - main
-    paths:
-      - crowdin.yml
-      - .github/workflows/crowdin.yml
-      - src/main/resources/assets/grounds_connect/lang/en_us.json
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "17 3 * * *"
 
 permissions:
   contents: write
