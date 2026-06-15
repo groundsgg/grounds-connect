@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/groundsgg/grounds-connect/compare/v0.3.0...v0.3.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* align java metadata with bytecode target ([#19](https://github.com/groundsgg/grounds-connect/issues/19)) ([a4cb50c](https://github.com/groundsgg/grounds-connect/commit/a4cb50c65d2ae1479da803396ed4c5c17c7e9ac7))
+* cancel streams and coalesce runtime polling ([#21](https://github.com/groundsgg/grounds-connect/issues/21)) ([ac1e795](https://github.com/groundsgg/grounds-connect/commit/ac1e795cbd73b6b177cf078fe322dcfb4d6fbfc6))
+
 ## [0.3.0](https://github.com/groundsgg/grounds-connect/compare/v0.2.3...v0.3.0) (2026-06-12)
 
 
