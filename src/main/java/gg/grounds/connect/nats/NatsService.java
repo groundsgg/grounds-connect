@@ -6,6 +6,7 @@ import gg.grounds.connect.core.AsyncCallback;
 import gg.grounds.connect.core.AuthenticatedApi;
 import gg.grounds.connect.core.ClientTaskRunner;
 import gg.grounds.connect.core.SessionLifecycle;
+import gg.grounds.connect.telemetry.SentryReporter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -32,6 +33,7 @@ public final class NatsService {
                 api.withAuthRetry(token -> api.api().getClusterNats(token, projectId));
             runner.onClient(() -> cb.onResult(snap));
           } catch (Throwable t) {
+            SentryReporter.captureHandled(t, "nats.fetch_cluster", "fetch_failed");
             runner.onClient(() -> cb.onError(t));
           }
         });
@@ -86,6 +88,7 @@ public final class NatsService {
             }
           } catch (Throwable t) {
             if (!cancelled.getAsBoolean() && !lease.isCancelled()) {
+              SentryReporter.captureHandled(t, "nats.tail", "tail_failed");
               runner.onClient(() -> sink.onInfo("== error: " + message(t) + " =="));
             }
           }

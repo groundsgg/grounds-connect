@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import gg.grounds.connect.Constants;
+import gg.grounds.connect.telemetry.SentryReporter;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -420,33 +421,45 @@ public final class ForgeApiClient {
   /** Generic mutation (POST/PATCH/PUT/DELETE). Returns the parsed body, or an empty object. */
   public JsonObject mutate(String accessToken, String method, String path, String jsonBody)
       throws Exception {
-    HttpRequest.Builder b =
-        HttpRequest.newBuilder(URI.create(baseUrl + path))
-            .timeout(Duration.ofSeconds(30))
-            .header("Authorization", "Bearer " + accessToken)
-            .header("Accept", "application/json");
-    if (jsonBody != null) {
-      b.header("Content-Type", "application/json");
-      b.method(method, HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8));
-    } else {
-      b.method(method, HttpRequest.BodyPublishers.noBody());
-    }
-    HttpResponse<String> res =
-        http.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-    if (res.statusCode() / 100 != 2) {
-      throw new ForgeApiException(
-          res.statusCode(),
-          method + " " + path + " -> HTTP " + res.statusCode() + ": " + truncate(res.body()));
-    }
-    String body = res.body();
-    if (body == null || body.isBlank()) {
-      return new JsonObject();
-    }
-    try {
-      return JsonParser.parseString(body).getAsJsonObject();
-    } catch (RuntimeException e) {
-      return new JsonObject();
-    }
+    return SentryReporter.trace(
+        "http.client",
+        SentryReporter.httpDescription(method, path),
+        () -> {
+          HttpRequest.Builder b =
+              HttpRequest.newBuilder(URI.create(baseUrl + path))
+                  .timeout(Duration.ofSeconds(30))
+                  .header("Authorization", "Bearer " + accessToken)
+                  .header("Accept", "application/json");
+          if (jsonBody != null) {
+            b.header("Content-Type", "application/json");
+            b.method(method, HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8));
+          } else {
+            b.method(method, HttpRequest.BodyPublishers.noBody());
+          }
+          HttpResponse<String> res =
+              http.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+          recordHttpMetric(method, path, res.statusCode());
+          if (res.statusCode() / 100 != 2) {
+            throw new ForgeApiException(
+                res.statusCode(),
+                method
+                    + " "
+                    + SentryReporter.httpDescription(method, path)
+                    + " -> HTTP "
+                    + res.statusCode()
+                    + ": "
+                    + truncate(res.body()));
+          }
+          String body = res.body();
+          if (body == null || body.isBlank()) {
+            return new JsonObject();
+          }
+          try {
+            return JsonParser.parseString(body).getAsJsonObject();
+          } catch (RuntimeException e) {
+            return new JsonObject();
+          }
+        });
   }
 
   /**
@@ -469,43 +482,51 @@ public final class ForgeApiClient {
       java.util.function.BooleanSupplier cancelled,
       Consumer<AutoCloseable> closeOnCancel)
       throws Exception {
-    HttpRequest req =
-        HttpRequest.newBuilder(URI.create(baseUrl + path))
-            .timeout(Duration.ofMinutes(10))
-            .header("Authorization", "Bearer " + accessToken)
-            .header("Accept", "text/event-stream")
-            .GET()
-            .build();
-    HttpResponse<Stream<String>> res = http.send(req, HttpResponse.BodyHandlers.ofLines());
-    if (res.statusCode() / 100 != 2) {
-      throw new ForgeApiException(res.statusCode(), "SSE " + path + " -> HTTP " + res.statusCode());
-    }
-    String event = "message";
-    StringBuilder data = new StringBuilder();
-    try (Stream<String> lines = res.body()) {
-      closeOnCancel.accept(lines);
-      java.util.Iterator<String> it = lines.iterator();
-      while (it.hasNext()) {
-        if (cancelled.getAsBoolean()) {
-          break;
-        }
-        String line = it.next();
-        if (line.isEmpty()) {
-          if (data.length() > 0) {
-            handler.onEvent(event, data.toString());
+    SentryReporter.trace(
+        "http.sse",
+        SentryReporter.httpDescription("SSE", path),
+        () -> {
+          HttpRequest req =
+              HttpRequest.newBuilder(URI.create(baseUrl + path))
+                  .timeout(Duration.ofMinutes(10))
+                  .header("Authorization", "Bearer " + accessToken)
+                  .header("Accept", "text/event-stream")
+                  .GET()
+                  .build();
+          HttpResponse<Stream<String>> res = http.send(req, HttpResponse.BodyHandlers.ofLines());
+          recordHttpMetric("SSE", path, res.statusCode());
+          if (res.statusCode() / 100 != 2) {
+            throw new ForgeApiException(
+                res.statusCode(),
+                SentryReporter.httpDescription("SSE", path) + " -> HTTP " + res.statusCode());
           }
-          event = "message";
-          data.setLength(0);
-        } else if (line.startsWith("event:")) {
-          event = line.substring(6).trim();
-        } else if (line.startsWith("data:")) {
-          if (data.length() > 0) {
-            data.append('\n');
+          String event = "message";
+          StringBuilder data = new StringBuilder();
+          try (Stream<String> lines = res.body()) {
+            closeOnCancel.accept(lines);
+            java.util.Iterator<String> it = lines.iterator();
+            while (it.hasNext()) {
+              if (cancelled.getAsBoolean()) {
+                break;
+              }
+              String line = it.next();
+              if (line.isEmpty()) {
+                if (data.length() > 0) {
+                  handler.onEvent(event, data.toString());
+                }
+                event = "message";
+                data.setLength(0);
+              } else if (line.startsWith("event:")) {
+                event = line.substring(6).trim();
+              } else if (line.startsWith("data:")) {
+                if (data.length() > 0) {
+                  data.append('\n');
+                }
+                data.append(line.substring(5).trim());
+              }
+            }
           }
-          data.append(line.substring(5).trim());
-        }
-      }
-    }
+        });
   }
 
   /** SSE frame sink. */
@@ -516,26 +537,39 @@ public final class ForgeApiClient {
   // --- helpers ------------------------------------------------------------
 
   private JsonObject getJson(String path, String accessToken) throws Exception {
-    HttpRequest req =
-        HttpRequest.newBuilder(URI.create(baseUrl + path))
-            .timeout(Duration.ofSeconds(30))
-            .header("Authorization", "Bearer " + accessToken)
-            .header("Accept", "application/json")
-            .GET()
-            .build();
-    HttpResponse<String> res =
-        http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-    if (res.statusCode() / 100 != 2) {
-      throw new ForgeApiException(
-          res.statusCode(),
-          "GET " + path + " -> HTTP " + res.statusCode() + ": " + truncate(res.body()));
-    }
-    try {
-      return JsonParser.parseString(res.body()).getAsJsonObject();
-    } catch (RuntimeException e) {
-      throw new ForgeApiException(
-          res.statusCode(), "GET " + path + " -> invalid JSON: " + truncate(res.body()));
-    }
+    return SentryReporter.trace(
+        "http.client",
+        SentryReporter.httpDescription("GET", path),
+        () -> {
+          HttpRequest req =
+              HttpRequest.newBuilder(URI.create(baseUrl + path))
+                  .timeout(Duration.ofSeconds(30))
+                  .header("Authorization", "Bearer " + accessToken)
+                  .header("Accept", "application/json")
+                  .GET()
+                  .build();
+          HttpResponse<String> res =
+              http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+          recordHttpMetric("GET", path, res.statusCode());
+          if (res.statusCode() / 100 != 2) {
+            throw new ForgeApiException(
+                res.statusCode(),
+                SentryReporter.httpDescription("GET", path)
+                    + " -> HTTP "
+                    + res.statusCode()
+                    + ": "
+                    + truncate(res.body()));
+          }
+          try {
+            return JsonParser.parseString(res.body()).getAsJsonObject();
+          } catch (RuntimeException e) {
+            throw new ForgeApiException(
+                res.statusCode(),
+                SentryReporter.httpDescription("GET", path)
+                    + " -> invalid JSON: "
+                    + truncate(res.body()));
+          }
+        });
   }
 
   private static JsonArray itemsOf(JsonObject body) {
@@ -588,5 +622,16 @@ public final class ForgeApiClient {
       return "";
     }
     return s.length() > 200 ? s.substring(0, 200) + "…" : s;
+  }
+
+  private static void recordHttpMetric(String method, String path, int statusCode) {
+    SentryReporter.metric("grounds_connect.http.client.request");
+    if (statusCode / 100 != 2) {
+      SentryReporter.warn(
+          "HTTP request failed (method={}, endpoint={}, statusCode={})",
+          method,
+          SentryReporter.httpDescription(method, path),
+          statusCode);
+    }
   }
 }

@@ -1,6 +1,7 @@
 plugins {
     id("fabric-loom") version "1.17.11"
     id("com.diffplug.spotless") version "8.7.0"
+    id("io.sentry.jvm.gradle") version "6.13.0"
 }
 
 base { archivesName.set(project.property("archives_base_name") as String) }
@@ -29,6 +30,8 @@ dependencies {
     // annotations (loom does not auto-inject it for this loader/MC combination).
     implementation("net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7")
 
+    implementation("io.sentry:sentry:8.46.0")
+
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
@@ -55,6 +58,13 @@ spotless {
         googleJavaFormat("1.35.0")
         removeUnusedImports()
     }
+}
+
+sentry {
+    includeSourceContext.set(System.getenv("SENTRY_AUTH_TOKEN") != null)
+    org.set("groundsgg")
+    projectName.set("grounds-connect")
+    authToken.set(System.getenv("SENTRY_AUTH_TOKEN"))
 }
 
 tasks.register("format") {

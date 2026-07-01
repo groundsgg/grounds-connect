@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import gg.grounds.connect.core.AuthenticatedApi;
 import gg.grounds.connect.core.ClientTaskRunner;
 import gg.grounds.connect.core.SessionLifecycle;
+import gg.grounds.connect.telemetry.SentryReporter;
 import java.util.function.BooleanSupplier;
 
 /** Tails Grounds SSE log endpoints. */
@@ -51,6 +52,7 @@ public final class LogService {
             }
           } catch (Throwable t) {
             if (!cancelled.getAsBoolean() && !lease.isCancelled()) {
+              SentryReporter.captureHandled(t, "logs.stream", "stream_failed");
               runner.onClient(() -> sink.onLine("== error: " + t.getMessage() + " =="));
             }
           }

@@ -1,5 +1,6 @@
 package gg.grounds.connect.core;
 
+import gg.grounds.connect.telemetry.SentryReporter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,15 +26,27 @@ public final class ClientTaskRunner {
           });
 
   public void execute(Runnable task) {
-    executor.execute(task);
+    executor.execute(wrap(task, "background.execute"));
   }
 
   public ScheduledFuture<?> scheduleWithFixedDelay(
       Runnable task, long initialDelay, long delay, TimeUnit unit) {
-    return scheduler.scheduleWithFixedDelay(task, initialDelay, delay, unit);
+    return scheduler.scheduleWithFixedDelay(
+        wrap(task, "background.schedule"), initialDelay, delay, unit);
   }
 
   public void onClient(Runnable task) {
     Minecraft.getInstance().execute(task);
+  }
+
+  private static Runnable wrap(Runnable task, String operation) {
+    return () -> {
+      try {
+        task.run();
+      } catch (Throwable t) {
+        SentryReporter.captureHandled(t, operation, "uncaught_background_task");
+        throw t;
+      }
+    };
   }
 }

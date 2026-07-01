@@ -6,6 +6,7 @@ import gg.grounds.connect.api.RollbackTarget;
 import gg.grounds.connect.core.AsyncCallback;
 import gg.grounds.connect.core.AuthenticatedApi;
 import gg.grounds.connect.core.ClientTaskRunner;
+import gg.grounds.connect.telemetry.SentryReporter;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -26,6 +27,7 @@ public final class DeploymentService {
             Push push = api.withAuthRetry(token -> api.api().getLatestPush(token, projectId, name));
             runner.onClient(() -> cb.onResult(push));
           } catch (Throwable t) {
+            SentryReporter.captureApiFailure(t, "deploy.fetch_latest_push", statusCode(t));
             runner.onClient(() -> cb.onError(t));
           }
         });
@@ -41,6 +43,7 @@ public final class DeploymentService {
                 api.withAuthRetry(token -> api.api().listRollbackTargets(token, projectId, app));
             runner.onClient(() -> cb.onResult(targets));
           } catch (Throwable t) {
+            SentryReporter.captureApiFailure(t, "deploy.fetch_rollback_targets", statusCode(t));
             runner.onClient(() -> cb.onError(t));
           }
         });
@@ -58,9 +61,11 @@ public final class DeploymentService {
                 });
             runner.onClient(onDone);
           } catch (ForgeApiException e) {
+            SentryReporter.captureApiFailure(e, "deploy.rollback", e.statusCode());
             String m = e.statusCode() == 403 ? "owner or editor role required" : e.getMessage();
             runner.onClient(() -> onError.accept(m));
           } catch (Throwable t) {
+            SentryReporter.captureApiFailure(t, "deploy.rollback", statusCode(t));
             runner.onClient(() -> onError.accept(message(t)));
           }
         });
@@ -91,6 +96,7 @@ public final class DeploymentService {
                 });
             runner.onClient(onStarted);
           } catch (Throwable t) {
+            SentryReporter.captureApiFailure(t, "deploy.retry_latest_build", statusCode(t));
             runner.onClient(() -> onError.accept(message(t)));
           }
         });
@@ -98,5 +104,9 @@ public final class DeploymentService {
 
   private static String message(Throwable t) {
     return t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName();
+  }
+
+  private static Integer statusCode(Throwable t) {
+    return t instanceof ForgeApiException e ? e.statusCode() : null;
   }
 }
