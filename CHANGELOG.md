@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0](https://github.com/groundsgg/grounds-connect/compare/v0.3.0...v0.4.0) (2026-07-01)
+
+
+### Features
+
+* add sentry observability ([#31](https://github.com/groundsgg/grounds-connect/issues/31)) ([482ba9c](https://github.com/groundsgg/grounds-connect/commit/482ba9ca3854e73cef264654663e93a527daedea))
+
+
+### Bug Fixes
+
+* align java metadata with bytecode target ([#19](https://github.com/groundsgg/grounds-connect/issues/19)) ([a4cb50c](https://github.com/groundsgg/grounds-connect/commit/a4cb50c65d2ae1479da803396ed4c5c17c7e9ac7))
+* bump com.diffplug.spotless from 8.6.0 to 8.7.0 ([#26](https://github.com/groundsgg/grounds-connect/issues/26)) ([b62a89a](https://github.com/groundsgg/grounds-connect/commit/b62a89ac292de30e6e7683d9fd1c4c730d0f84e0))
+* bump gradle-wrapper from 9.5.1 to 9.6.0 ([#27](https://github.com/groundsgg/grounds-connect/issues/27)) ([8e3a0c8](https://github.com/groundsgg/grounds-connect/commit/8e3a0c85a00731e8c8ad0fd9ce49d0a6dc344e12))
+* bump gradle-wrapper from 9.6.0 to 9.6.1 ([#30](https://github.com/groundsgg/grounds-connect/issues/30)) ([764af71](https://github.com/groundsgg/grounds-connect/commit/764af71e6e1d625acf250bfec7d94143753d5799))
+* bump org.junit.jupiter:junit-jupiter from 6.1.0 to 6.1.1 ([#29](https://github.com/groundsgg/grounds-connect/issues/29)) ([fa013fa](https://github.com/groundsgg/grounds-connect/commit/fa013faffdd8ebdf68c12bae885d9ef2a02ab98a))
+* cancel streams and coalesce runtime polling ([#21](https://github.com/groundsgg/grounds-connect/issues/21)) ([ac1e795](https://github.com/groundsgg/grounds-connect/commit/ac1e795cbd73b6b177cf078fe322dcfb4d6fbfc6))
+
 ## [0.3.0](https://github.com/groundsgg/grounds-connect/compare/v0.2.3...v0.3.0) (2026-06-12)
 
 
