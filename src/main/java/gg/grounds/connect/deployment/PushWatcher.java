@@ -9,6 +9,7 @@ import gg.grounds.connect.core.AuthenticatedApi;
 import gg.grounds.connect.core.ClientTaskRunner;
 import gg.grounds.connect.core.SessionLifecycle;
 import gg.grounds.connect.project.ProjectService;
+import gg.grounds.connect.telemetry.SentryReporter;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,7 +57,8 @@ public final class PushWatcher {
             if (selected != null) {
               watchInFlightPushes(selected.id(), sink);
             }
-          } catch (Throwable ignored) {
+          } catch (Throwable t) {
+            SentryReporter.captureHandled(t, "push.watch", "tick_failed");
             // transient; try again next tick
           }
         },
@@ -82,6 +84,7 @@ public final class PushWatcher {
             }
           } catch (Throwable t) {
             Constants.LOG.debug("[grounds] watch pushes failed: {}", t.toString());
+            SentryReporter.captureHandled(t, "push.watch", "poll_failed");
           }
         });
   }
@@ -112,6 +115,7 @@ public final class PushWatcher {
                     lease::closeOnCancel);
           } catch (Throwable t) {
             Constants.LOG.debug("[grounds] push stream {} ended: {}", push.id(), t.toString());
+            SentryReporter.captureHandled(t, "push.stream", "stream_ended_with_error");
           } finally {
             watchedPushes.remove(push.id());
           }

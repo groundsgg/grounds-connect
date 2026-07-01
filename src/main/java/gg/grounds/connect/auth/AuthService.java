@@ -2,6 +2,7 @@ package gg.grounds.connect.auth;
 
 import gg.grounds.connect.Constants;
 import gg.grounds.connect.core.ClientTaskRunner;
+import gg.grounds.connect.telemetry.SentryReporter;
 import java.time.Instant;
 
 /** Owns authentication state and device-login flow for the Grounds client. */
@@ -148,6 +149,8 @@ public final class AuthService {
           if (!completeLogin(loginGeneration, handle, c)) {
             return;
           }
+          SentryReporter.metric("grounds_connect.auth.login_succeeded");
+          SentryReporter.info("Device login completed successfully (component=auth)");
           runner.onClient(listener::onSuccess);
           return;
         } else if (result instanceof KeycloakClient.PollResult.SlowDown) {
@@ -162,6 +165,7 @@ public final class AuthService {
       Thread.currentThread().interrupt();
     } catch (Throwable t) {
       Constants.LOG.warn("[grounds] device login failed", t);
+      SentryReporter.captureHandled(t, "auth.login", "device_login_failed");
       String msg = t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName();
       runner.onClient(() -> listener.onError(msg));
     }

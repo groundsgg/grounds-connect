@@ -2,6 +2,7 @@ package gg.grounds.connect;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import gg.grounds.connect.config.GroundsConfig;
+import gg.grounds.connect.telemetry.SentryReporter;
 import gg.grounds.connect.ui.DeployToasts;
 import gg.grounds.connect.ui.DeviceCodeScreen;
 import gg.grounds.connect.ui.servers.GroundsServersScreen;
@@ -27,6 +28,7 @@ public final class GroundsClient implements ClientModInitializer {
 
   @Override
   public void onInitializeClient() {
+    SentryReporter.init();
     GroundsConfig.get().load();
     Grounds.services().auth().loadFromStore();
     Grounds.services().pushes().start(DeployToasts::onStatus);

@@ -31,6 +31,8 @@ jobs:
         run: ./gradlew spotlessCheck
 
       - name: Build
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: ./gradlew build
 
       - name: Upload mod jar
