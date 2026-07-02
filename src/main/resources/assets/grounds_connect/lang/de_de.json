@@ -1,7 +1,7 @@
 {
   "grounds_connect.title": "Grounds Connect",
   "grounds_connect.control.login": "Grounds: Anmelden",
-  "grounds_connect.control.connecting": "Grounds: …",
+  "grounds_connect.control.connecting": "…",
   "grounds_connect.control.refresh": "Aktualisieren",
   "grounds_connect.control.refresh.tooltip": "Server dieses Projekts neu laden",
   "grounds_connect.control.project.placeholder": "Projekt: —",
@@ -16,7 +16,6 @@
   "grounds_connect.search.hint": "Server suchen…",
   "grounds_connect.platform.unreachable": "⚠ Grounds-Plattform nicht erreichbar",
   "key.grounds_connect.open": "Grounds Connect öffnen",
-
   "grounds_connect.device.title": "Bei Grounds anmelden",
   "grounds_connect.device.instructions": "Öffne diese Seite in deinem Browser und gib den Code ein:",
   "grounds_connect.device.url": "%s",
@@ -29,7 +28,6 @@
   "grounds_connect.device.success": "Angemeldet. Deine Projekte werden geladen…",
   "grounds_connect.device.copied": "In die Zwischenablage kopiert.",
   "grounds_connect.device.cancel": "Abbrechen",
-
   "grounds_connect.status.loadingProjects": "Projekte werden geladen…",
   "grounds_connect.status.loadingServers": "Server werden geladen…",
   "grounds_connect.status.noProjects": "Keine Projekte in deinem Konto.",
@@ -44,13 +42,11 @@
   "grounds_connect.error.projects": "Projekte konnten nicht geladen werden: %s",
   "grounds_connect.error.servers": "Server konnten nicht geladen werden: %s",
   "grounds_connect.error.retry": "Erneuter Versuch: %s",
-
-  "grounds_connect.server.pinging": "pingt…",
+  "grounds_connect.server.pinging": "pinging…",
   "grounds_connect.server.health.online": "online",
   "grounds_connect.server.health.starting": "startet…",
   "grounds_connect.server.health.paused": "pausiert",
   "grounds_connect.server.health.offline": "offline",
-
   "grounds_connect.logs.title": "Logs · %s",
   "grounds_connect.logs.runtime": "Runtime",
   "grounds_connect.logs.build": "Build",
@@ -62,17 +58,15 @@
   "grounds_connect.logs.uploading": "Upload zu mclo.gs läuft…",
   "grounds_connect.logs.uploaded": "%s  (kopiert)",
   "grounds_connect.logs.uploadFailed": "Upload fehlgeschlagen: %s",
-
   "grounds_connect.rollback.title": "Rollback · %s",
   "grounds_connect.rollback.selected": "Auf Auswahl zurückrollen",
   "grounds_connect.rollback.loading": "Builds werden geladen…",
-  "grounds_connect.rollback.empty": "Keine Builds für einen Rollback bereit.",
+  "grounds_connect.rollback.empty": "Keine Builds für ein Rollback bereit.",
   "grounds_connect.rollback.error": "Fehler: %s",
   "grounds_connect.rollback.pickFirst": "Wähle zuerst einen Build aus.",
   "grounds_connect.rollback.running": "Rollback läuft…",
   "grounds_connect.rollback.failed": "Rollback fehlgeschlagen: %s",
   "grounds_connect.rollback.current": "(aktuell)",
-
   "grounds_connect.nats.title": "NATS · %s",
   "grounds_connect.nats.tailTitle": "NATS-Tail · %s",
   "grounds_connect.nats.liveTail": "Live-Tail ▸",
@@ -95,7 +89,6 @@
   "grounds_connect.nats.resume": "Fortsetzen",
   "grounds_connect.nats.clear": "Leeren",
   "grounds_connect.nats.tailing": "== Tail %s ==",
-
   "grounds_connect.toast.building": "Build läuft…",
   "grounds_connect.toast.deploying": "Deployment läuft…",
   "grounds_connect.toast.deployed": "Deployt ✓",
