@@ -1,6 +1,6 @@
 plugins {
     id("fabric-loom") version "1.17.11"
-    id("com.diffplug.spotless") version "8.7.0"
+    id("com.diffplug.spotless") version "8.8.0"
     id("io.sentry.jvm.gradle") version "6.14.0"
 }
 
