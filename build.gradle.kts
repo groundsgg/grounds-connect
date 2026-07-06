@@ -61,11 +61,15 @@ spotless {
     }
 }
 
+val sentryAuthToken = System.getenv("SENTRY_AUTH_TOKEN")?.trim()
+
 sentry {
-    includeSourceContext.set(System.getenv("SENTRY_AUTH_TOKEN") != null)
+    includeSourceContext.set(!sentryAuthToken.isNullOrBlank())
     org.set("groundsgg")
     projectName.set("grounds-connect")
-    authToken.set(System.getenv("SENTRY_AUTH_TOKEN"))
+    if (!sentryAuthToken.isNullOrBlank()) {
+        authToken.set(sentryAuthToken)
+    }
 }
 
 tasks.register("format") {
