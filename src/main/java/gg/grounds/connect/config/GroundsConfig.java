@@ -50,9 +50,9 @@ public final class GroundsConfig {
   public String apiBaseUrl() {
     String env = System.getenv("GROUNDS_API_URL");
     if (env != null && !env.isBlank()) {
-      return stripTrailingSlash(env.trim());
+      return normalizeApiBaseUrl(env);
     }
-    return stripTrailingSlash(apiBaseUrl);
+    return normalizeApiBaseUrl(apiBaseUrl);
   }
 
   public String selectedProjectId() {
@@ -109,7 +109,7 @@ public final class GroundsConfig {
       String json = Files.readString(file, StandardCharsets.UTF_8);
       JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
       if (obj.has("apiBaseUrl") && !obj.get("apiBaseUrl").isJsonNull()) {
-        this.apiBaseUrl = obj.get("apiBaseUrl").getAsString();
+        this.apiBaseUrl = normalizeApiBaseUrl(obj.get("apiBaseUrl").getAsString());
       }
       if (obj.has("selectedProjectId") && !obj.get("selectedProjectId").isJsonNull()) {
         this.selectedProjectId = obj.get("selectedProjectId").getAsString();
@@ -157,6 +157,14 @@ public final class GroundsConfig {
     } catch (IOException e) {
       Constants.LOG.warn("[grounds] Failed to write config.json", e);
     }
+  }
+
+  static String normalizeApiBaseUrl(String value) {
+    String normalized = stripTrailingSlash(value.trim());
+    if (Constants.LEGACY_API_BASE_URL.equals(normalized)) {
+      return Constants.DEFAULT_API_BASE_URL;
+    }
+    return normalized;
   }
 
   private static String stripTrailingSlash(String s) {

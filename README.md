@@ -90,7 +90,7 @@ Stored under `.minecraft/config/grounds_connect/`:
 
 | File | Contents |
 | --- | --- |
-| `config.json` | `apiBaseUrl` (default `https://platform.grnds.io`), `selectedProjectId` |
+| `config.json` | `apiBaseUrl` (default `https://api.grounds.gg`), `selectedProjectId` |
 | `credentials.json` | OIDC tokens (written owner-only on POSIX filesystems) |
 
 Environment override: `GROUNDS_API_URL` takes precedence over `config.json`.

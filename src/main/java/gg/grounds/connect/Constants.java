@@ -17,8 +17,11 @@ public final class Constants {
   public static final String KEYCLOAK_CLIENT_ID = "grounds-cli";
   public static final String KEYCLOAK_SCOPE = "openid profile email offline_access";
 
+  /** Legacy forge platform API base used before the public API moved to api.grounds.gg. */
+  public static final String LEGACY_API_BASE_URL = "https://platform.grnds.io";
+
   /** Default forge platform API base; overridable via config.json or GROUNDS_API_URL. */
-  public static final String DEFAULT_API_BASE_URL = "https://platform.grnds.io";
+  public static final String DEFAULT_API_BASE_URL = "https://api.grounds.gg";
 
   /** publicUrl scheme that marks a connectable Minecraft server in the deployments API. */
   public static final String MINECRAFT_URL_SCHEME = "minecraft://";
