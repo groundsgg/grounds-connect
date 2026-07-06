@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1](https://github.com/groundsgg/grounds-connect/compare/v0.4.0...v0.4.1) (2026-07-06)
+
+
+### Bug Fixes
+
+* bump com.diffplug.spotless from 8.7.0 to 8.8.0 ([#32](https://github.com/groundsgg/grounds-connect/issues/32)) ([fb84369](https://github.com/groundsgg/grounds-connect/commit/fb84369c23f1cdea346d58ec0c905ca635c2f60c))
+* bump io.sentry:sentry from 8.46.0 to 8.47.0 ([#33](https://github.com/groundsgg/grounds-connect/issues/33)) ([3cbf5c8](https://github.com/groundsgg/grounds-connect/commit/3cbf5c8869a539de62f391244a89e05dbf534204))
+* bump io.sentry.jvm.gradle from 6.13.0 to 6.14.0 ([#34](https://github.com/groundsgg/grounds-connect/issues/34)) ([406bb45](https://github.com/groundsgg/grounds-connect/commit/406bb45d498dfe2ac91b9a862411e2128acec133))
+* **connect:** include sentry runtime jar ([a367554](https://github.com/groundsgg/grounds-connect/commit/a3675544a1dd31e31d615cad64e7782e17aba7c5))
+* **connect:** use public api hostname ([e97e3ee](https://github.com/groundsgg/grounds-connect/commit/e97e3eea6ad3c59ba15dbf8273dae8357e7b3688))
+* handle blank sentry auth token ([313c529](https://github.com/groundsgg/grounds-connect/commit/313c5296c9f21743c06b47563c85bcc54ca2a5c7))
+
 ## [0.4.0](https://github.com/groundsgg/grounds-connect/compare/v0.3.0...v0.4.0) (2026-07-01)
 
 
