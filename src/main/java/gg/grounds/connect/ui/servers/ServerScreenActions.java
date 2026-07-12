@@ -53,7 +53,7 @@ final class ServerScreenActions {
     if (entry == null || projectId == null) {
       return;
     }
-    screen.client().setScreen(new LogConsoleScreen(screen, entry.name, projectId));
+    screen.client().setScreenAndShow(new LogConsoleScreen(screen, entry.name, projectId));
   }
 
   void retryBuild() {
@@ -96,7 +96,7 @@ final class ServerScreenActions {
           Component.translatable("grounds_connect.status.rollbackRoleRequired"));
       return;
     }
-    screen.client().setScreen(new RollbackPickerScreen(screen, entry.name, projectId));
+    screen.client().setScreenAndShow(new RollbackPickerScreen(screen, entry.name, projectId));
   }
 
   void openNats() {
@@ -106,12 +106,12 @@ final class ServerScreenActions {
       screen.setStatusMessage(Component.translatable("grounds_connect.status.noProjects"));
       return;
     }
-    screen.client().setScreen(new NatsScreen(screen, projectId, selected.displayName()));
+    screen.client().setScreenAndShow(new NatsScreen(screen, projectId, selected.displayName()));
   }
 
   void logout() {
     services.logout();
-    screen.client().setScreen(new TitleScreen());
+    screen.client().setScreenAndShow(new TitleScreen());
   }
 
   private void connect(ServerEntry entry) {

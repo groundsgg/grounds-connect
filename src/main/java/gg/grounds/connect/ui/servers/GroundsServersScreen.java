@@ -303,11 +303,11 @@ public final class GroundsServersScreen extends Screen {
 
   @Override
   public void onClose() {
-    this.minecraft.setScreen(lastScreen);
+    this.minecraft.gui.setScreen(lastScreen);
   }
 
   boolean isCurrentScreen() {
-    return minecraft != null && minecraft.screen == this;
+    return minecraft != null && minecraft.gui.screen() == this;
   }
 
   Minecraft client() {
@@ -332,7 +332,7 @@ public final class GroundsServersScreen extends Screen {
     public void onProjectsLoaded(List<Project> projects) {
       if (isCurrentScreen()) {
         // Rebuild so the project picker is populated from the now-cached projects.
-        minecraft.setScreen(new GroundsServersScreen(lastScreen));
+        minecraft.setScreenAndShow(new GroundsServersScreen(lastScreen));
       }
     }
 

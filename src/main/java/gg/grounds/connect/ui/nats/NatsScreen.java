@@ -158,7 +158,7 @@ public final class NatsScreen extends Screen {
   }
 
   private void openTail() {
-    this.minecraft.setScreen(new NatsTailScreen(this, projectId, projectLabel));
+    this.minecraft.setScreenAndShow(new NatsTailScreen(this, projectId, projectLabel));
   }
 
   private void addLine(String line) {
@@ -168,12 +168,12 @@ public final class NatsScreen extends Screen {
   }
 
   private boolean isCurrent() {
-    return minecraft != null && minecraft.screen == this;
+    return minecraft != null && minecraft.gui.screen() == this;
   }
 
   @Override
   public void onClose() {
-    this.minecraft.setScreen(parent);
+    this.minecraft.setScreenAndShow(parent);
   }
 
   /** Compact byte count: 1234 -> "1.2K". */

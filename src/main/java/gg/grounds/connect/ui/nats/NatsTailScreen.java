@@ -3,6 +3,7 @@ package gg.grounds.connect.ui.nats;
 import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.Nats;
 import gg.grounds.connect.nats.NatsTailSink;
+import gg.grounds.connect.ui.ScreenNavigation;
 import gg.grounds.connect.ui.logs.LogLineList;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,14 +127,17 @@ public final class NatsTailScreen extends Screen {
             new NatsTailSink() {
               @Override
               public void onMessage(Nats.TailMessage m) {
-                if (isCurrent() && !flag.get() && !paused) {
+                if (ScreenNavigation.isCurrent(minecraft.gui.screen(), NatsTailScreen.this)
+                    && !flag.get()
+                    && !paused) {
                   addLine(m.subject() + "  " + oneLine(m.data()));
                 }
               }
 
               @Override
               public void onInfo(String line) {
-                if (isCurrent() && !flag.get()) {
+                if (ScreenNavigation.isCurrent(minecraft.gui.screen(), NatsTailScreen.this)
+                    && !flag.get()) {
                   addLine(line);
                 }
               }
@@ -167,10 +171,6 @@ public final class NatsTailScreen extends Screen {
     return s.length() > 240 ? s.substring(0, 240) + "…" : s;
   }
 
-  private boolean isCurrent() {
-    return minecraft != null && minecraft.screen == this;
-  }
-
   @Override
   public void removed() {
     if (streamCancelled != null) {
@@ -183,6 +183,6 @@ public final class NatsTailScreen extends Screen {
     if (streamCancelled != null) {
       streamCancelled.set(true);
     }
-    this.minecraft.setScreen(parent);
+    ScreenNavigation.show(this.minecraft, parent);
   }
 }

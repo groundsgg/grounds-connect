@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Update the Fabric client mod to Minecraft 26.2.
+
 ## [0.4.1](https://github.com/groundsgg/grounds-connect/compare/v0.4.0...v0.4.1) (2026-07-06)
 
 

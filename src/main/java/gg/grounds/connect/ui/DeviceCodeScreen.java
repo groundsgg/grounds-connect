@@ -139,6 +139,6 @@ public final class DeviceCodeScreen extends Screen {
     if (handle != null) {
       handle.cancel();
     }
-    minecraft.setScreen(parent);
+    minecraft.gui.setScreen(parent);
   }
 }

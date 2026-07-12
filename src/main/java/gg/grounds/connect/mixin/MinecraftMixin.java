@@ -34,7 +34,7 @@ public abstract class MinecraftMixin {
   private void grounds$afterLeave(Component reason, CallbackInfo ci) {
     if (grounds$leftGroundsServer) {
       grounds$leftGroundsServer = false;
-      ((Minecraft) (Object) this).setScreen(new GroundsServersScreen(new TitleScreen()));
+      ((Minecraft) (Object) this).setScreenAndShow(new GroundsServersScreen(new TitleScreen()));
     }
   }
 }
