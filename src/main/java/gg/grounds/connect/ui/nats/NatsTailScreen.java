@@ -168,7 +168,7 @@ public final class NatsTailScreen extends Screen {
   }
 
   private boolean isCurrent() {
-    return minecraft != null && minecraft.screen == this;
+    return minecraft != null && minecraft.gui.screen() == this;
   }
 
   @Override
@@ -183,6 +183,6 @@ public final class NatsTailScreen extends Screen {
     if (streamCancelled != null) {
       streamCancelled.set(true);
     }
-    this.minecraft.setScreen(parent);
+    this.minecraft.setScreenAndShow(parent);
   }
 }

@@ -52,12 +52,13 @@ public final class GroundsClient implements ClientModInitializer {
    * Opens the Grounds screen (logging in first if needed); closing it returns where we came from.
    */
   private static void openGroundsScreen(Minecraft client) {
-    Screen back = client.screen; // null when in-game, so Back returns to gameplay
+    Screen back = client.gui.screen(); // null when in-game, so Back returns to gameplay
     if (Grounds.services().auth().isLoggedIn()) {
-      client.setScreen(new GroundsServersScreen(back));
+      client.setScreenAndShow(new GroundsServersScreen(back));
     } else {
-      client.setScreen(
-          new DeviceCodeScreen(back, () -> client.setScreen(new GroundsServersScreen(back))));
+      client.setScreenAndShow(
+          new DeviceCodeScreen(
+              back, () -> client.setScreenAndShow(new GroundsServersScreen(back))));
     }
   }
 }

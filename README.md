@@ -8,7 +8,7 @@ join test environments without switching back and forth between Minecraft and ex
 This is not a gameplay content mod: it does not add blocks, items, mobs, or dimensions. It is a
 developer and operator tool for working with Grounds-powered Minecraft servers.
 
-> **Minecraft 26.1.2** · Fabric Loader ≥ 0.19 · Java 25+ · Fabric API required
+> **Minecraft 26.2** · Fabric Loader ≥ 0.19 · Java 25+ · Fabric API required
 
 ```
 Main menu                    Grounds Connect
@@ -55,14 +55,14 @@ development workflow.
 
 ## Requirements
 
-- Minecraft **26.1.2**
+- Minecraft **26.2**
 - **Fabric Loader** ≥ 0.19.0
 - Java 25+
 - Fabric API
 
-> **Mappings note:** MC 26.1.2 ships deobfuscated (no `client_mappings`, no yarn), so the build uses
+> **Mappings note:** MC 26.2 ships deobfuscated (no `client_mappings`, no yarn), so the build uses
 > official Mojang names with an identity mapping (`net.fabricmc:intermediary:0.0.0:v2`) and Fabric
-> Loom `1.16.3`. There is no refmap — that is correct for this era.
+> Loom `1.17.11`. There is no refmap — that is correct for this era.
 
 ## Build
 

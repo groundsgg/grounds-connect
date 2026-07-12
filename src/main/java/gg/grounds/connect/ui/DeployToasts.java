@@ -22,7 +22,7 @@ public final class DeployToasts {
     SystemToast.SystemToastId id =
         IDS.computeIfAbsent(pushId, k -> new SystemToast.SystemToastId());
     SystemToast.addOrUpdate(
-        mc.getToastManager(), id, Component.literal("Grounds · " + appName), message(status));
+        mc.gui.toastManager(), id, Component.literal("Grounds · " + appName), message(status));
     if (isTerminal(status)) {
       IDS.remove(pushId); // build finished — stop tracking its toast id
     }

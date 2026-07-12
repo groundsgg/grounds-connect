@@ -69,11 +69,11 @@ public abstract class TitleScreenMixin extends Screen {
   private void grounds$onClick() {
     Screen self = this;
     if (Grounds.services().auth().isLoggedIn()) {
-      this.minecraft.setScreen(new GroundsServersScreen(self));
+      this.minecraft.setScreenAndShow(new GroundsServersScreen(self));
     } else {
-      this.minecraft.setScreen(
+      this.minecraft.setScreenAndShow(
           new DeviceCodeScreen(
-              self, () -> this.minecraft.setScreen(new GroundsServersScreen(self))));
+              self, () -> this.minecraft.setScreenAndShow(new GroundsServersScreen(self))));
     }
   }
 }

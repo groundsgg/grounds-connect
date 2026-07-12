@@ -103,7 +103,7 @@ public final class RollbackPickerScreen extends Screen {
             entry.target.id(),
             () -> {
               if (isCurrent()) {
-                this.minecraft.setScreen(parent);
+                this.minecraft.setScreenAndShow(parent);
               }
             },
             error -> {
@@ -120,12 +120,12 @@ public final class RollbackPickerScreen extends Screen {
   }
 
   private boolean isCurrent() {
-    return minecraft != null && minecraft.screen == this;
+    return minecraft != null && minecraft.gui.screen() == this;
   }
 
   @Override
   public void onClose() {
-    this.minecraft.setScreen(parent);
+    this.minecraft.setScreenAndShow(parent);
   }
 
   static final class TargetList extends ObjectSelectionList<TargetEntry> {
