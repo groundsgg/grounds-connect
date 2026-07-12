@@ -3,6 +3,7 @@ package gg.grounds.connect.ui.logs;
 import gg.grounds.connect.Grounds;
 import gg.grounds.connect.api.Push;
 import gg.grounds.connect.core.AsyncCallback;
+import gg.grounds.connect.ui.ScreenNavigation;
 import gg.grounds.connect.util.Mclogs;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -128,7 +129,9 @@ public final class LogConsoleScreen extends Screen {
               new AsyncCallback<>() {
                 @Override
                 public void onResult(Push push) {
-                  if (source != Source.BUILD || !isCurrent() || flag.get()) {
+                  if (source != Source.BUILD
+                      || !ScreenNavigation.isCurrent(minecraft.gui.screen(), LogConsoleScreen.this)
+                      || flag.get()) {
                     return;
                   }
                   if (push == null) {
@@ -152,7 +155,7 @@ public final class LogConsoleScreen extends Screen {
   }
 
   private void onLine(String line) {
-    if (!isCurrent()) {
+    if (!ScreenNavigation.isCurrent(minecraft.gui.screen(), this)) {
       return;
     }
     addLine(line);
@@ -208,10 +211,6 @@ public final class LogConsoleScreen extends Screen {
     }
   }
 
-  private boolean isCurrent() {
-    return minecraft != null && minecraft.gui.screen() == this;
-  }
-
   @Override
   public void removed() {
     if (streamCancelled != null) {
@@ -224,7 +223,7 @@ public final class LogConsoleScreen extends Screen {
     if (streamCancelled != null) {
       streamCancelled.set(true);
     }
-    this.minecraft.setScreenAndShow(parent);
+    ScreenNavigation.show(this.minecraft, parent);
   }
 
   private static String enc(String s) {
