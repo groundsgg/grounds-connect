@@ -6,6 +6,13 @@
 
 - Update the Fabric client mod to Minecraft 26.2.
 
+## [0.4.2](https://github.com/groundsgg/grounds-connect/compare/v0.4.1...v0.4.2) (2026-07-12)
+
+
+### Bug Fixes
+
+* update Minecraft to 26.2 ([#36](https://github.com/groundsgg/grounds-connect/issues/36)) ([5642ff8](https://github.com/groundsgg/grounds-connect/commit/5642ff8ad4cd04c4ab05ed719b2706e0ec397331))
+
 ## [0.4.1](https://github.com/groundsgg/grounds-connect/compare/v0.4.0...v0.4.1) (2026-07-06)
 
 
