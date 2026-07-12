@@ -120,4 +120,4 @@ jobs:
           version-type: ${{ github.event_name == 'workflow_dispatch' && inputs['version-type'] || 'release' }}
           changelog-file: .modrinth-changelog.md
           loaders: fabric
-          game-versions: "26.1.2"
+          game-versions: "26.2"
