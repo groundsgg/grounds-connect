@@ -54,6 +54,10 @@ public final class GroundsServices {
     return nats;
   }
 
+  public void executeInBackground(Runnable task) {
+    runner.execute(task);
+  }
+
   public void logout() {
     lifecycle.reset();
     pushes.clearWatchedPushes();

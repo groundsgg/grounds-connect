@@ -30,6 +30,8 @@ public final class GroundsServersScreen extends Screen {
   private final Screen lastScreen;
   private final GroundsServices services = Grounds.services();
   private final ServerDataLoader loader = new ServerDataLoader(services, new LoaderListener());
+  private final ServerPingScheduler pingScheduler =
+      new ServerPingScheduler(services::executeInBackground);
   private final ServerScreenActions actions;
   private final ServerStatusPinger pinger = new ServerStatusPinger();
 
@@ -270,16 +272,19 @@ public final class GroundsServersScreen extends Screen {
   private void pingAll(List<ServerEntry> list) {
     pinger.removeAll();
     for (ServerEntry entry : list) {
-      try {
-        entry.pinging = true;
-        pinger.pingServer(
-            entry.data,
-            () -> entry.pinging = false,
-            () -> entry.pinging = false,
-            EventLoopGroupHolder.remote(false));
-      } catch (Exception e) {
-        entry.pinging = false;
-      }
+      entry.pinging = true;
+      pingScheduler.submit(
+          () -> {
+            try {
+              pinger.pingServer(
+                  entry.data,
+                  () -> entry.pinging = false,
+                  () -> entry.pinging = false,
+                  EventLoopGroupHolder.remote(false));
+            } catch (Exception e) {
+              entry.pinging = false;
+            }
+          });
     }
   }
 
