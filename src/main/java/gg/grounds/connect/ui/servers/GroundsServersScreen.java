@@ -7,7 +7,6 @@ import gg.grounds.connect.api.Project;
 import gg.grounds.connect.config.GroundsConfig;
 import gg.grounds.connect.core.GroundsServices;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
@@ -18,6 +17,7 @@ import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.LoadingDotsWidget;
 import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ServerStatusPinger;
 import net.minecraft.network.chat.CommonComponents;
@@ -46,7 +46,7 @@ public final class GroundsServersScreen extends Screen {
   private boolean initialLoadDone;
   private boolean platformReady = true; // assume up until a probe says otherwise
   private final ServerListModel model = new ServerListModel();
-  private final List<AbstractWidget> serverActionWidgets = new ArrayList<>();
+  private final ServerListSelection selection = new ServerListSelection();
   private ServerContentState contentState = ServerContentState.UNAVAILABLE;
   private String currentProjectId;
   private Component loadingMessage =
@@ -56,7 +56,10 @@ public final class GroundsServersScreen extends Screen {
 
   private GroundsServerList serverList;
   private AbstractWidget projectButton; // CycleButton<Project> or a disabled placeholder
+  private AbstractWidget refreshButton;
   private AbstractWidget natsButton;
+  private AbstractWidget joinButton;
+  private AbstractWidget manageButton;
   private EditBox search;
   private LoadingDotsWidget loadingIndicator;
   private StringWidget status;
@@ -74,7 +77,6 @@ public final class GroundsServersScreen extends Screen {
 
   @Override
   protected void init() {
-    serverActionWidgets.clear();
     int row = 6;
     int searchY = 30;
     int listTop = 54;
@@ -82,20 +84,36 @@ public final class GroundsServersScreen extends Screen {
 
     serverList = new GroundsServerList(this.minecraft, this.width, listHeight, listTop, 32);
     serverList.setOnJoin(actions::joinSelected);
+    serverList.setOnSelectionChanged(
+        entry -> {
+          selection.remember(entry);
+          applyContentState();
+        });
     serverList.setOnToggleFavorite(this::toggleFavorite);
     serverList.setOnToggleExpand(this::toggleExpand);
     addRenderableWidget(serverList);
 
     projectButton = buildProjectButton(row);
     addRenderableWidget(projectButton);
+    refreshButton =
+        Button.builder(Component.literal("↻"), button -> reloadServers())
+            .bounds(192, row, 20, 20)
+            .tooltip(
+                Tooltip.create(Component.translatable("grounds_connect.control.refresh.tooltip")))
+            .createNarration(
+                ignored -> Component.translatable("grounds_connect.control.refresh.tooltip"))
+            .build();
+    addRenderableWidget(refreshButton);
+    natsButton =
+        Button.builder(Component.literal("NATS"), button -> actions.openNats())
+            .bounds(216, row, 60, 20)
+            .build();
+    addRenderableWidget(natsButton);
     addRenderableWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.control.refresh"), b -> reloadServers())
-            .bounds(192, row, 80, 20)
-            .build());
-    addRenderableWidget(
-        Button.builder(Component.translatable("grounds_connect.menu.logout"), b -> logout())
-            .bounds(this.width - 104, row, 100, 20)
+        Button.builder(Component.literal("⇥"), button -> logout())
+            .bounds(width - 28, row, 20, 20)
+            .tooltip(Tooltip.create(Component.translatable("grounds_connect.menu.logout")))
+            .createNarration(ignored -> Component.translatable("grounds_connect.menu.logout"))
             .build());
 
     if (platformReady) {
@@ -139,39 +157,33 @@ public final class GroundsServersScreen extends Screen {
     loadingIndicator.setY(listTop + Math.max(0, (listHeight - loadingIndicator.getHeight()) / 2));
     addRenderableWidget(loadingIndicator);
 
-    int recoveryY = this.height - 52;
-    addServerActionWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.action.retry"), b -> actions.retryBuild())
-            .bounds(this.width / 2 - 153, recoveryY, 100, 20)
-            .build());
-    addServerActionWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.action.rollback"),
-                b -> actions.rollbackSelected())
-            .bounds(this.width / 2 - 50, recoveryY, 100, 20)
-            .build());
-    natsButton =
-        Button.builder(Component.literal("NATS"), b -> actions.openNats())
-            .bounds(this.width / 2 + 53, recoveryY, 100, 20)
-            .build();
-    addRenderableWidget(natsButton);
-
-    int by = this.height - 28;
-    addServerActionWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.action.join"), b -> actions.joinSelected())
-            .bounds(this.width / 2 - 153, by, 100, 20)
-            .build());
-    addServerActionWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.action.logs"), b -> actions.openLogs())
-            .bounds(this.width / 2 - 50, by, 100, 20)
-            .build());
-    addRenderableWidget(
-        Button.builder(CommonComponents.GUI_BACK, b -> onClose())
-            .bounds(this.width / 2 + 53, by, 100, 20)
-            .build());
+    int buttonY = height - 28;
+    for (int index = 0; index < ServerScreenControls.bottomOrder().size(); index++) {
+      ServerScreenControls.BottomAction action = ServerScreenControls.bottomOrder().get(index);
+      int buttonX = width / 2 - 153 + index * 103;
+      AbstractWidget widget =
+          switch (action) {
+            case JOIN ->
+                joinButton =
+                    Button.builder(
+                            Component.translatable("grounds_connect.action.join"),
+                            button -> actions.joinSelected())
+                        .bounds(buttonX, buttonY, 100, 20)
+                        .build();
+            case MANAGE ->
+                manageButton =
+                    Button.builder(
+                            Component.translatable("grounds_connect.action.manage"),
+                            button -> openManagement())
+                        .bounds(buttonX, buttonY, 100, 20)
+                        .build();
+            case BACK ->
+                Button.builder(CommonComponents.GUI_BACK, button -> onClose())
+                    .bounds(buttonX, buttonY, 100, 20)
+                    .build();
+          };
+      addRenderableWidget(widget);
+    }
 
     applyView();
     applyContentState();
@@ -191,11 +203,6 @@ public final class GroundsServersScreen extends Screen {
         showUnavailable(Component.translatable("grounds_connect.control.login"));
       }
     }
-  }
-
-  private <T extends AbstractWidget> T addServerActionWidget(T widget) {
-    serverActionWidgets.add(widget);
-    return addRenderableWidget(widget);
   }
 
   private AbstractWidget buildProjectButton(int y) {
@@ -244,11 +251,8 @@ public final class GroundsServersScreen extends Screen {
       return;
     }
     List<ServerEntry> view = model.visibleEntries(GroundsConfig.get());
-    ServerEntry previouslySelected = serverList.selected();
     serverList.setServers(view);
-    if (previouslySelected != null && view.contains(previouslySelected)) {
-      serverList.setSelected(previouslySelected);
-    }
+    serverList.setSelected(selection.restore(view));
   }
 
   private void beginLoading(Component message) {
@@ -256,6 +260,7 @@ public final class GroundsServersScreen extends Screen {
     loadingMessage = message;
     model.clear();
     if (serverList != null) {
+      selection.clear();
       serverList.setSelected(null);
     }
     applyView();
@@ -268,6 +273,7 @@ public final class GroundsServersScreen extends Screen {
     contentState = ServerContentState.UNAVAILABLE;
     model.clear();
     if (serverList != null) {
+      selection.clear();
       serverList.setSelected(null);
     }
     applyView();
@@ -294,12 +300,33 @@ public final class GroundsServersScreen extends Screen {
     if (status != null) {
       status.visible = !contentState.loaderVisible();
     }
-    for (AbstractWidget widget : serverActionWidgets) {
-      widget.active = contentState.serverActionsActive();
+    ServerScreenControls controls =
+        ServerScreenControls.forState(
+            contentState, serverList != null && serverList.selected() != null);
+    if (joinButton != null) {
+      joinButton.active = controls.joinActive();
+    }
+    if (manageButton != null) {
+      manageButton.active = controls.manageActive();
+    }
+    boolean projectActionsActive = ServerContentState.projectActionsActive(currentProjectId);
+    if (refreshButton != null) {
+      refreshButton.active = projectActionsActive;
     }
     if (natsButton != null) {
-      natsButton.active = ServerContentState.projectActionsActive(currentProjectId);
+      natsButton.active = projectActionsActive;
     }
+  }
+
+  private void openManagement() {
+    ServerEntry entry = serverList == null ? null : serverList.selected();
+    Project project = services.projects().selectedProject();
+    if (entry == null || project == null || currentProjectId == null) {
+      return;
+    }
+    minecraft.setScreenAndShow(
+        new ServerManagementScreen(
+            this, entry.name, currentProjectId, project.displayName(), project.role()));
   }
 
   private void toggleFavorite(ServerEntry entry) {

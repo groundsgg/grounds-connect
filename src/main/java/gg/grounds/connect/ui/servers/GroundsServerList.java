@@ -18,6 +18,7 @@ public class GroundsServerList extends ObjectSelectionList<ServerEntry> {
   private static final int STAR_W = 14; // only on top-level rows
 
   private Runnable onJoin;
+  private Consumer<ServerEntry> onSelectionChanged;
   private Consumer<ServerEntry> onToggleFavorite;
   private Consumer<ServerEntry> onToggleExpand;
 
@@ -28,6 +29,18 @@ public class GroundsServerList extends ObjectSelectionList<ServerEntry> {
   /** Action run when an entry is double-clicked (connect to it). */
   public void setOnJoin(Runnable onJoin) {
     this.onJoin = onJoin;
+  }
+
+  public void setOnSelectionChanged(Consumer<ServerEntry> onSelectionChanged) {
+    this.onSelectionChanged = onSelectionChanged;
+  }
+
+  @Override
+  public void setSelected(ServerEntry entry) {
+    super.setSelected(entry);
+    if (onSelectionChanged != null) {
+      onSelectionChanged.accept(entry);
+    }
   }
 
   /** Called when the pin star of an entry is clicked. */
