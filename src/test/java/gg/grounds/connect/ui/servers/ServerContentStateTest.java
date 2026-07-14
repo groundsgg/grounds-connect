@@ -34,4 +34,10 @@ class ServerContentStateTest {
     assertSame(ServerContentState.UNAVAILABLE, ServerContentState.afterServerLoad(0));
     assertSame(ServerContentState.CONTENT, ServerContentState.afterServerLoad(1));
   }
+
+  @Test
+  void projectActionsOnlyRequireASelectedProject() {
+    assertFalse(ServerContentState.projectActionsActive(null));
+    assertTrue(ServerContentState.projectActionsActive("project-id"));
+  }
 }

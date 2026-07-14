@@ -30,4 +30,8 @@ enum ServerContentState {
   static ServerContentState afterServerLoad(int serverCount) {
     return serverCount > 0 ? CONTENT : UNAVAILABLE;
   }
+
+  static boolean projectActionsActive(String projectId) {
+    return projectId != null;
+  }
 }

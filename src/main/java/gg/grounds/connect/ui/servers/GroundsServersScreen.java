@@ -56,6 +56,7 @@ public final class GroundsServersScreen extends Screen {
 
   private GroundsServerList serverList;
   private AbstractWidget projectButton; // CycleButton<Project> or a disabled placeholder
+  private AbstractWidget natsButton;
   private EditBox search;
   private LoadingDotsWidget loadingIndicator;
   private StringWidget status;
@@ -150,10 +151,11 @@ public final class GroundsServersScreen extends Screen {
                 b -> actions.rollbackSelected())
             .bounds(this.width / 2 - 50, recoveryY, 100, 20)
             .build());
-    addServerActionWidget(
+    natsButton =
         Button.builder(Component.literal("NATS"), b -> actions.openNats())
             .bounds(this.width / 2 + 53, recoveryY, 100, 20)
-            .build());
+            .build();
+    addRenderableWidget(natsButton);
 
     int by = this.height - 28;
     addServerActionWidget(
@@ -294,6 +296,9 @@ public final class GroundsServersScreen extends Screen {
     }
     for (AbstractWidget widget : serverActionWidgets) {
       widget.active = contentState.serverActionsActive();
+    }
+    if (natsButton != null) {
+      natsButton.active = ServerContentState.projectActionsActive(currentProjectId);
     }
   }
 
