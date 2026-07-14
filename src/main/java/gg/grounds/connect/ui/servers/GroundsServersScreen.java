@@ -13,6 +13,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ServerStatusPinger;
@@ -48,6 +49,7 @@ public final class GroundsServersScreen extends Screen {
 
   private GroundsServerList serverList;
   private AbstractWidget projectButton; // CycleButton<Project> or a disabled placeholder
+  private SpriteIconButton refreshButton;
   private EditBox search;
   private StringWidget status;
 
@@ -77,11 +79,16 @@ public final class GroundsServersScreen extends Screen {
 
     projectButton = buildProjectButton(row);
     addRenderableWidget(projectButton);
-    addRenderableWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.control.refresh"), b -> reloadServers())
-            .bounds(192, row, 80, 20)
-            .build());
+    refreshButton =
+        addRenderableWidget(
+            SpriteIconButton.builder(
+                    Component.translatable("grounds_connect.control.refresh"),
+                    b -> reloadServers(),
+                    true)
+                .bounds(192, row, 20, 20)
+                .tooltip(Component.translatable("grounds_connect.control.refresh"))
+                .sprite(ICON_REFRESH, ICON_LOGOUT, ACTION_ICON_SIZE, ACTION_ICON_SIZE)
+                .build());
     addRenderableWidget(
         Button.builder(Component.translatable("grounds_connect.menu.logout"), b -> logout())
             .bounds(this.width - 104, row, 100, 20)
@@ -206,6 +213,7 @@ public final class GroundsServersScreen extends Screen {
   private void reloadServers() {
     Project selected = services.auth().isLoggedIn() ? services.projects().selectedProject() : null;
     if (selected == null) {
+      resetRefreshButtonState();
       model.clear();
       currentProjectId = null;
       applyView();
@@ -302,6 +310,14 @@ public final class GroundsServersScreen extends Screen {
     reloadServers();
   }
 
+  private void resetRefreshButtonState() {
+    if (refreshButton == null) {
+      return;
+    }
+    refreshButton.setFocused(false);
+    refreshButton.setLoading(false);
+  }
+
   private void logout() {
     actions.logout();
   }
@@ -353,6 +369,7 @@ public final class GroundsServersScreen extends Screen {
       if (!isCurrentScreen() || !projectId.equals(currentProjectId)) {
         return false;
       }
+      resetRefreshButtonState();
       model.replaceServers(servers);
       applyView();
       pingAll(model.entries());
@@ -366,6 +383,7 @@ public final class GroundsServersScreen extends Screen {
     @Override
     public void onServersError(String projectId, Throwable error) {
       if (isCurrentScreen() && projectId.equals(currentProjectId)) {
+        resetRefreshButtonState();
         setStatusMessage(Component.translatable("grounds_connect.error.servers", msg(error)));
       }
     }

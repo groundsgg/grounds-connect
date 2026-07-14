@@ -10,17 +10,6 @@ developer and operator tool for working with Grounds-powered Minecraft servers.
 
 > **Minecraft 26.2** · Fabric Loader ≥ 0.19 · Java 25+ · Fabric API required
 
-```
-Main menu                    Grounds Connect
-┌──────────────────┐         ┌──────────────────────────────────────────────┐
-│  Singleplayer    │         │ [Project: duels ▾]  [Refresh]      [Log out]   │
-│  Multiplayer     │         │ ● duels-lobby                ● online 1/1      │
-│ [Grounds Connect] │  ───►   │   duels-lobby-….mc.grnds.io   12/100  45ms    │
-│  Options  Quit   │         │ ● duels-arena                ● paused          │
-└──────────────────┘         │              [ Join ] [ Logs ] [ Back ]        │
-                             └──────────────────────────────────────────────┘
-```
-
 ## Features
 
 - **Grounds login from Minecraft** — open the Grounds Connect screen from the main menu and sign in
