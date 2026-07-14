@@ -6,7 +6,7 @@ Grounds Connect must replace stale server rows with a Minecraft-native loading i
 
 ## User Experience
 
-The project selector, search field, refresh button, logout button, and back navigation remain visible while data loads. The server list area is cleared immediately and replaced by Minecraft 26.2's `LoadingDotsWidget`, centered in the same content region.
+The project selector, search field, refresh button, logout button, and back navigation remain visible while data loads. The server rows are cleared immediately and Minecraft 26.2's `LoadingDotsWidget` is centered in the same content region. The empty server-list widget remains visible behind the loader so its Vanilla background does not change between loading and loaded states.
 
 The widget displays the localized status for the active operation:
 
@@ -22,7 +22,7 @@ The server-related actions `Join`, `Logs`, `Retry`, `Rollback`, and `NATS` are d
 Starting a load performs these steps before dispatching the asynchronous request:
 
 1. Clear the server model and the selected server.
-2. Hide the server list.
+2. Keep the empty server-list surface visible so the background remains stable.
 3. Show the loading widget with the operation-specific message.
 4. Disable all server-related actions.
 
@@ -49,9 +49,9 @@ A stale success or error callback cannot change the loader, list, message, or ac
 
 A small Minecraft-independent state test covers these transitions:
 
-- Loading hides content and disables server actions.
+- Loading keeps the empty list surface behind the loader and disables server actions.
 - Successful content loading shows content and enables server actions.
-- Empty and failed loading stop the loader while leaving content and actions disabled.
+- Empty and failed loading stop the loader while keeping the empty list surface visible and actions disabled.
 
 The implementation must also preserve the current stale-project callback guards.
 
@@ -70,4 +70,4 @@ Verify visually in the client:
 3. Refresh the current project.
 4. Load an empty project or exercise a server-load failure.
 
-Acceptance requires that the Vanilla loading animation stays centered in the server-list region and that stale server rows are never visible or interactive during a load.
+Acceptance requires that the Vanilla loading animation stays centered in the server-list region, stale server rows are never visible or interactive during a load, and the list background does not change when the loader appears or disappears.

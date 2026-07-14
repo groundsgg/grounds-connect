@@ -4,7 +4,7 @@
 
 **Goal:** Replace stale Grounds server rows with Minecraft 26.2's animated `LoadingDotsWidget` during project and server loads.
 
-**Architecture:** `GroundsServersScreen` owns a small explicit content state that controls list visibility, loader visibility, status visibility, and server-action availability. A package-private enum keeps those state semantics independent from Minecraft widgets and unit-testable; existing `currentProjectId` checks remain the authority for rejecting stale callbacks.
+**Architecture:** `GroundsServersScreen` owns a small explicit content state that controls the stable list surface, loader visibility, status visibility, and server-action availability. A package-private enum keeps those state semantics independent from Minecraft widgets and unit-testable; existing `currentProjectId` checks remain the authority for rejecting stale callbacks.
 
 **Tech Stack:** Java 25, Minecraft 26.2 client GUI, Fabric, JUnit 6, Gradle, Spotless
 
@@ -14,6 +14,7 @@
 - Keep project selection, search, refresh, logout, and back navigation visible while loading.
 - Disable `Join`, `Logs`, `Retry`, `Rollback`, and `NATS` while loading, empty, or failed.
 - Clear old server rows and selection before dispatching each asynchronous server request.
+- Keep the empty server-list widget visible behind the loader so the Vanilla background does not change.
 - Ignore stale server responses and errors whose project ID does not equal `currentProjectId`.
 - Do not add or modify log messages for this UI-only change.
 - Run every Gradle command with escalated permissions.
@@ -47,8 +48,8 @@ import org.junit.jupiter.api.Test;
 class ServerContentStateTest {
 
   @Test
-  void loadingShowsOnlyLoader() {
-    assertFalse(ServerContentState.LOADING.listVisible());
+  void loadingKeepsListSurfaceBehindLoader() {
+    assertTrue(ServerContentState.LOADING.listVisible());
     assertTrue(ServerContentState.LOADING.loaderVisible());
     assertFalse(ServerContentState.LOADING.serverActionsActive());
   }
@@ -61,8 +62,8 @@ class ServerContentStateTest {
   }
 
   @Test
-  void unavailableShowsNeitherContentNorLoader() {
-    assertFalse(ServerContentState.UNAVAILABLE.listVisible());
+  void unavailableKeepsEmptyListSurfaceWithoutLoader() {
+    assertTrue(ServerContentState.UNAVAILABLE.listVisible());
     assertFalse(ServerContentState.UNAVAILABLE.loaderVisible());
     assertFalse(ServerContentState.UNAVAILABLE.serverActionsActive());
   }
@@ -93,9 +94,9 @@ Create `src/main/java/gg/grounds/connect/ui/servers/ServerContentState.java`:
 package gg.grounds.connect.ui.servers;
 
 enum ServerContentState {
-  LOADING(false, true, false),
+  LOADING(true, true, false),
   CONTENT(true, false, true),
-  UNAVAILABLE(false, false, false);
+  UNAVAILABLE(true, false, false);
 
   private final boolean listVisible;
   private final boolean loaderVisible;
@@ -374,7 +375,7 @@ git diff -- src/main/java/gg/grounds/connect/ui/servers/GroundsServersScreen.jav
 git status --short
 ```
 
-Confirm that old rows are cleared before `loader.loadServers(projectId)`, only stale-safe callbacks finish loading, all five server actions follow `serverActionsActive()`, and `logs/` remains untracked.
+Confirm that old rows are cleared before `loader.loadServers(projectId)`, the empty list surface remains visible behind the loader, only stale-safe callbacks finish loading, all five server actions follow `serverActionsActive()`, and `logs/` remains untracked.
 
 - [ ] **Step 7: Commit the loading UI**
 
@@ -408,7 +409,7 @@ Expected: Minecraft 26.2 opens with Grounds Connect loaded.
 
 Check these exact scenarios:
 
-1. Open Grounds Connect and confirm the project-loading animation is centered in the list region.
+1. Open Grounds Connect and confirm the project-loading animation is centered in the list region without changing its background.
 2. Wait for servers, switch to another project, and confirm the old rows disappear before the request completes.
 3. While loading, confirm `Join`, `Logs`, `Retry`, `Rollback`, and `NATS` are disabled while project selection, search, refresh, logout, and back remain available.
 4. Press refresh and confirm the same transition occurs.

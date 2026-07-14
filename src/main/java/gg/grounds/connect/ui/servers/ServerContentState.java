@@ -1,9 +1,9 @@
 package gg.grounds.connect.ui.servers;
 
 enum ServerContentState {
-  LOADING(false, true, false),
+  LOADING(true, true, false),
   CONTENT(true, false, true),
-  UNAVAILABLE(false, false, false);
+  UNAVAILABLE(true, false, false);
 
   private final boolean listVisible;
   private final boolean loaderVisible;

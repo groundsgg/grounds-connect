@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 class ServerContentStateTest {
 
   @Test
-  void loadingShowsOnlyLoader() {
-    assertFalse(ServerContentState.LOADING.listVisible());
+  void loadingKeepsListSurfaceBehindLoader() {
+    assertTrue(ServerContentState.LOADING.listVisible());
     assertTrue(ServerContentState.LOADING.loaderVisible());
     assertFalse(ServerContentState.LOADING.serverActionsActive());
   }
@@ -23,8 +23,8 @@ class ServerContentStateTest {
   }
 
   @Test
-  void unavailableShowsNeitherContentNorLoader() {
-    assertFalse(ServerContentState.UNAVAILABLE.listVisible());
+  void unavailableKeepsEmptyListSurfaceWithoutLoader() {
+    assertTrue(ServerContentState.UNAVAILABLE.listVisible());
     assertFalse(ServerContentState.UNAVAILABLE.loaderVisible());
     assertFalse(ServerContentState.UNAVAILABLE.serverActionsActive());
   }
