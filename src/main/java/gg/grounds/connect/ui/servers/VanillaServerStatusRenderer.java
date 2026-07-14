@@ -14,6 +14,7 @@ import net.minecraft.resources.Identifier;
 final class VanillaServerStatusRenderer {
   private static final int ICON_WIDTH = 10;
   private static final int ICON_HEIGHT = 8;
+  private static final int PLAYER_STATUS_HEIGHT = 8;
   private static final int STATUS_GAP = 5;
   private static final int STATUS_COLOR = 0xFF808080;
   private static final RenderPipeline PIPELINE = RenderPipelines.GUI_TEXTURED;
@@ -73,13 +74,8 @@ final class VanillaServerStatusRenderer {
         context.mouseX(), context.mouseY(), iconX, context.rowY(), ICON_WIDTH, ICON_HEIGHT)) {
       extractor.setTooltipForNextFrame(display.pingTooltip(), context.mouseX(), context.mouseY());
     } else if (!display.playerTooltip().isEmpty()
-        && inside(
-            context.mouseX(),
-            context.mouseY(),
-            statusX,
-            context.rowY(),
-            statusWidth,
-            font.lineHeight + 8)) {
+        && insidePlayerStatus(
+            context.mouseX(), context.mouseY(), statusX, context.rowY(), statusWidth)) {
       extractor.setTooltipForNextFrame(
           display.playerTooltip().stream().map(Component::getVisualOrderText).toList(),
           context.mouseX(),
@@ -123,6 +119,11 @@ final class VanillaServerStatusRenderer {
 
   private static boolean inside(int mouseX, int mouseY, int x, int y, int width, int height) {
     return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+  }
+
+  static boolean insidePlayerStatus(
+      int mouseX, int mouseY, int statusX, int statusY, int statusWidth) {
+    return inside(mouseX, mouseY, statusX, statusY, statusWidth, PLAYER_STATUS_HEIGHT);
   }
 
   record Display(

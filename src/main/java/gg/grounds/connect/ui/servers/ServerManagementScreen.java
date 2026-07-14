@@ -1,6 +1,7 @@
 package gg.grounds.connect.ui.servers;
 
 import gg.grounds.connect.Grounds;
+import gg.grounds.connect.core.RequestCoalescer;
 import gg.grounds.connect.ui.RollbackPickerScreen;
 import gg.grounds.connect.ui.ScreenNavigation;
 import gg.grounds.connect.ui.logs.LogConsoleScreen;
@@ -22,13 +23,18 @@ final class ServerManagementScreen extends Screen {
   private StringWidget status;
 
   ServerManagementScreen(
-      Screen parent, String serverName, String projectId, String projectName, String projectRole) {
+      Screen parent,
+      String serverName,
+      String projectId,
+      String projectName,
+      String projectRole,
+      RequestCoalescer retries) {
     super(Component.translatable("grounds_connect.manage.title", serverName));
     this.parent = parent;
     this.serverName = serverName;
     this.projectId = projectId;
     this.projectName = projectName;
-    this.state = new ServerManagementState(projectRole);
+    this.state = new ServerManagementState(projectRole, retries, projectId, serverName);
   }
 
   @Override
