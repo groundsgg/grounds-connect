@@ -6,9 +6,11 @@ import gg.grounds.connect.api.GroundsServer;
 import gg.grounds.connect.api.Project;
 import gg.grounds.connect.config.GroundsConfig;
 import gg.grounds.connect.core.GroundsServices;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.ChatFormatting;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -346,17 +348,23 @@ public final class GroundsServersScreen extends Screen {
   private void pingAll(List<ServerEntry> list) {
     pinger.removeAll();
     for (ServerEntry entry : list) {
-      entry.pinging = true;
+      VanillaServerPingState.start(entry.data);
       pingScheduler.submit(
           () -> {
             try {
               pinger.pingServer(
                   entry.data,
-                  () -> entry.pinging = false,
-                  () -> entry.pinging = false,
+                  () -> {},
+                  () ->
+                      VanillaServerPingState.complete(
+                          entry.data, SharedConstants.getCurrentVersion().protocolVersion()),
                   EventLoopGroupHolder.remote(false));
+            } catch (UnknownHostException e) {
+              VanillaServerPingState.fail(
+                  entry.data, Component.translatable("multiplayer.status.cannot_resolve"));
             } catch (Exception e) {
-              entry.pinging = false;
+              VanillaServerPingState.fail(
+                  entry.data, Component.translatable("multiplayer.status.cannot_connect"));
             }
           });
     }

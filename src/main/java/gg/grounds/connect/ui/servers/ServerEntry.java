@@ -32,9 +32,6 @@ public final class ServerEntry extends ObjectSelectionList.Entry<ServerEntry> {
   /** Live runtime, filled in asynchronously; read live each frame. */
   public volatile DeploymentRuntime runtime;
 
-  /** True while a Minecraft status ping is in flight (ServerStatusPinger fills {@code data}). */
-  public volatile boolean pinging;
-
   /** Whether this server is pinned; set by the screen from config when (re)building the view. */
   public volatile boolean favorite;
 
