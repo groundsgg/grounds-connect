@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import gg.grounds.connect.core.RequestCoalescer;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -29,8 +28,8 @@ final class ServerManagementStateTest {
   }
 
   @Test
-  void rejectsDuplicateRetryAcrossRecreatedStateUntilTheCallbackCompletes() {
-    RequestCoalescer retries = new RequestCoalescer();
+  void recreatedConsumerObservesSuccessfulRetryCompletion() {
+    ServerRetryRegistry retries = new ServerRetryRegistry();
     ServerManagementState first =
         new ServerManagementState("owner", retries, "project-a", "server-a");
 
@@ -40,10 +39,27 @@ final class ServerManagementStateTest {
         new ServerManagementState("owner", retries, "project-a", "server-a");
     assertFalse(recreated.beginRetry());
     assertFalse(recreated.retryActive());
+    assertEquals(ServerRetryRegistry.Status.PENDING, recreated.retrySnapshot().status());
 
-    first.finishRetry();
+    first.finishRetrySuccessfully();
 
     assertTrue(recreated.retryActive());
-    assertTrue(recreated.beginRetry());
+    assertEquals(ServerRetryRegistry.Status.SUCCESS, recreated.retrySnapshot().status());
+  }
+
+  @Test
+  void recreatedConsumerObservesRetryErrorCompletion() {
+    ServerRetryRegistry retries = new ServerRetryRegistry();
+    ServerManagementState first =
+        new ServerManagementState("owner", retries, "project-a", "server-a");
+    assertTrue(first.beginRetry());
+    ServerManagementState recreated =
+        new ServerManagementState("owner", retries, "project-a", "server-a");
+
+    first.finishRetryWithError("build unavailable");
+
+    assertTrue(recreated.retryActive());
+    assertEquals(ServerRetryRegistry.Status.ERROR, recreated.retrySnapshot().status());
+    assertEquals("build unavailable", recreated.retrySnapshot().error());
   }
 }

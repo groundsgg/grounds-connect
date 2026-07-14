@@ -1,6 +1,5 @@
 package gg.grounds.connect.ui.servers;
 
-import gg.grounds.connect.core.RequestCoalescer;
 import java.util.List;
 
 final class ServerManagementState {
@@ -14,12 +13,12 @@ final class ServerManagementState {
   private static final List<Action> ACTION_ORDER =
       List.of(Action.LOGS, Action.RETRY_BUILD, Action.ROLLBACK, Action.BACK);
   private final boolean rollbackActive;
-  private final RequestCoalescer retries;
+  private final ServerRetryRegistry retries;
   private final String projectId;
   private final String serverName;
 
   ServerManagementState(
-      String projectRole, RequestCoalescer retries, String projectId, String serverName) {
+      String projectRole, ServerRetryRegistry retries, String projectId, String serverName) {
     rollbackActive = canRollback(projectRole);
     this.retries = retries;
     this.projectId = projectId;
@@ -30,12 +29,20 @@ final class ServerManagementState {
     return retries.begin(projectId, serverName);
   }
 
-  void finishRetry() {
-    retries.finish(projectId, serverName);
+  void finishRetrySuccessfully() {
+    retries.finishSuccessfully(projectId, serverName);
+  }
+
+  void finishRetryWithError(String error) {
+    retries.finishWithError(projectId, serverName, error);
   }
 
   boolean retryActive() {
-    return !retries.isInFlight(projectId, serverName);
+    return retrySnapshot().status() != ServerRetryRegistry.Status.PENDING;
+  }
+
+  ServerRetryRegistry.Snapshot retrySnapshot() {
+    return retries.snapshot(projectId, serverName);
   }
 
   boolean rollbackActive() {

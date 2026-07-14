@@ -6,7 +6,6 @@ import gg.grounds.connect.api.GroundsServer;
 import gg.grounds.connect.api.Project;
 import gg.grounds.connect.config.GroundsConfig;
 import gg.grounds.connect.core.GroundsServices;
-import gg.grounds.connect.core.RequestCoalescer;
 import java.net.UnknownHostException;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -48,7 +47,7 @@ public final class GroundsServersScreen extends Screen {
   private boolean platformReady = true; // assume up until a probe says otherwise
   private final ServerListModel model = new ServerListModel();
   private final ServerListSelection selection = new ServerListSelection();
-  private final RequestCoalescer retryRequests = new RequestCoalescer();
+  private final ServerRetryRegistry retryRequests = new ServerRetryRegistry();
   private final ServerScreenLifecycle lifecycle = new ServerScreenLifecycle();
   private ServerContentState contentState = ServerContentState.UNAVAILABLE;
   private String currentProjectId;
