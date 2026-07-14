@@ -1,7 +1,6 @@
 package gg.grounds.connect.ui.servers;
 
 import gg.grounds.connect.Grounds;
-import gg.grounds.connect.core.RequestCoalescer;
 import gg.grounds.connect.ui.RollbackPickerScreen;
 import gg.grounds.connect.ui.ScreenNavigation;
 import gg.grounds.connect.ui.logs.LogConsoleScreen;
@@ -21,6 +20,7 @@ final class ServerManagementScreen extends Screen {
   private Button retryButton;
   private Button rollbackButton;
   private StringWidget status;
+  private ServerRetryRegistry.Snapshot displayedRetrySnapshot;
 
   ServerManagementScreen(
       Screen parent,
@@ -28,7 +28,7 @@ final class ServerManagementScreen extends Screen {
       String projectId,
       String projectName,
       String projectRole,
-      RequestCoalescer retries) {
+      ServerRetryRegistry retries) {
     super(Component.translatable("grounds_connect.manage.title", serverName));
     this.parent = parent;
     this.serverName = serverName;
@@ -87,7 +87,8 @@ final class ServerManagementScreen extends Screen {
     }
     status = new StringWidget(width / 2 - 150, y + 78, 300, 12, Component.empty(), font);
     addRenderableWidget(status);
-    applyActionState();
+    displayedRetrySnapshot = null;
+    syncRetryState();
   }
 
   private void openLogs() {
@@ -98,26 +99,23 @@ final class ServerManagementScreen extends Screen {
     if (!state.beginRetry()) {
       return;
     }
-    setStatus(Component.translatable("grounds_connect.status.retryingBuild", serverName));
-    applyActionState();
+    syncRetryState();
     Grounds.services()
         .deployments()
         .retryLatestBuild(serverName, projectId, this::onRetryStarted, this::onRetryError);
   }
 
   private void onRetryStarted() {
-    state.finishRetry();
+    state.finishRetrySuccessfully();
     if (isCurrentScreen()) {
-      setStatus(Component.translatable("grounds_connect.status.retryStarted"));
-      applyActionState();
+      syncRetryState();
     }
   }
 
   private void onRetryError(String error) {
-    state.finishRetry();
+    state.finishRetryWithError(error);
     if (isCurrentScreen()) {
-      setStatus(Component.translatable("grounds_connect.error.retry", error));
-      applyActionState();
+      syncRetryState();
     }
   }
 
@@ -127,9 +125,28 @@ final class ServerManagementScreen extends Screen {
     }
   }
 
-  private void applyActionState() {
-    retryButton.active = state.retryActive();
+  @Override
+  public void tick() {
+    super.tick();
+    syncRetryState();
+  }
+
+  private void syncRetryState() {
+    ServerRetryRegistry.Snapshot snapshot = state.retrySnapshot();
+    retryButton.active = snapshot.status() != ServerRetryRegistry.Status.PENDING;
     rollbackButton.active = state.rollbackActive();
+    if (snapshot.equals(displayedRetrySnapshot)) {
+      return;
+    }
+    displayedRetrySnapshot = snapshot;
+    setStatus(
+        switch (snapshot.status()) {
+          case IDLE -> Component.empty();
+          case PENDING ->
+              Component.translatable("grounds_connect.status.retryingBuild", serverName);
+          case SUCCESS -> Component.translatable("grounds_connect.status.retryStarted");
+          case ERROR -> Component.translatable("grounds_connect.error.retry", snapshot.error());
+        });
   }
 
   private void setStatus(Component message) {

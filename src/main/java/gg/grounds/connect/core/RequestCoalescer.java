@@ -15,9 +15,5 @@ public final class RequestCoalescer {
     inFlight.remove(new Key(scope, name));
   }
 
-  public boolean isInFlight(String scope, String name) {
-    return inFlight.contains(new Key(scope, name));
-  }
-
   private record Key(String scope, String name) {}
 }
