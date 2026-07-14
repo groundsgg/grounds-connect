@@ -47,6 +47,9 @@ public final class ServerEntry extends ObjectSelectionList.Entry<ServerEntry> {
   /** Backend game servers fronted by this proxy (null/empty for non-proxy rows). */
   public List<ServerEntry> children;
 
+  /** Current visible-row index, used for Vanilla's staggered ping animation. */
+  private int statusRowIndex;
+
   public ServerEntry(
       String name, String address, ServerData data, String deploymentState, String type) {
     this.name = name;
@@ -63,6 +66,10 @@ public final class ServerEntry extends ObjectSelectionList.Entry<ServerEntry> {
   /** Minestom backends have no direct minecraft:// route — reachable only through the proxy. */
   public boolean isMinestom() {
     return "minestom".equals(type);
+  }
+
+  void setStatusRowIndex(int statusRowIndex) {
+    this.statusRowIndex = statusRowIndex;
   }
 
   @Override
@@ -102,19 +109,25 @@ public final class ServerEntry extends ObjectSelectionList.Entry<ServerEntry> {
     int textX = cursor;
 
     // Right-aligned columns drawn first, so we know how much room the left text has.
-    int nameMaxRight = rightEdge;
+    int vanillaLeft =
+        VanillaServerStatusRenderer.render(
+            extractor,
+            font,
+            data,
+            rightEdge,
+            line1Y - 1,
+            mouseX,
+            mouseY,
+            statusRowIndex,
+            net.minecraft.util.Util.getMillis());
+    int nameMaxRight = vanillaLeft - RIGHT_GAP;
+
+    int addressMaxRight = rightEdge;
     if (deploymentState != null) {
       String label = badgeLabel();
       int bx = rightEdge - font.width(label);
-      extractor.text(font, label, bx, line1Y, badgeColor());
-      nameMaxRight = bx - RIGHT_GAP;
-    }
-    int addressMaxRight = rightEdge;
-    String ping = pingText();
-    if (!ping.isEmpty()) {
-      int px = rightEdge - font.width(ping);
-      extractor.text(font, ping, px, line2Y, 0xFFA0A0A0);
-      addressMaxRight = px - RIGHT_GAP;
+      extractor.text(font, label, bx, line2Y, badgeColor());
+      addressMaxRight = bx - RIGHT_GAP;
     }
 
     String label = name;
@@ -141,17 +154,6 @@ public final class ServerEntry extends ObjectSelectionList.Entry<ServerEntry> {
       return font.plainSubstrByWidth(s, maxWidth);
     }
     return font.plainSubstrByWidth(s, maxWidth - ew) + ellipsis;
-  }
-
-  private String pingText() {
-    if (data.players != null) {
-      String s = data.players.online() + "/" + data.players.max();
-      if (data.ping >= 0) {
-        s += "  " + data.ping + "ms";
-      }
-      return s;
-    }
-    return pinging ? I18n.get("grounds_connect.server.pinging") : "";
   }
 
   private DeploymentRuntime.Health health() {

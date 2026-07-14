@@ -74,6 +74,18 @@ final class VanillaServerStatusRendererTest {
   }
 
   @Test
+  void keepsEveryVisibleRowOnVanillasTwoStepPhaseOffset() {
+    ServerData data = serverData(ServerData.State.PINGING);
+
+    assertEquals(
+        "server_list/pinging_1", VanillaServerStatusRenderer.display(data, 0, 0).icon().getPath());
+    assertEquals(
+        "server_list/pinging_3", VanillaServerStatusRenderer.display(data, 0, 1).icon().getPath());
+    assertEquals(
+        "server_list/pinging_5", VanillaServerStatusRenderer.display(data, 0, 2).icon().getPath());
+  }
+
+  @Test
   void mapsUnreachableAndIncompatibleStates() {
     assertEquals(
         "server_list/unreachable",

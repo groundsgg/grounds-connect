@@ -81,7 +81,9 @@ public class GroundsServerList extends ObjectSelectionList<ServerEntry> {
 
   public void setServers(List<ServerEntry> entries) {
     this.clearEntries();
-    for (ServerEntry entry : entries) {
+    for (int rowIndex = 0; rowIndex < entries.size(); rowIndex++) {
+      ServerEntry entry = entries.get(rowIndex);
+      entry.setStatusRowIndex(rowIndex);
       this.addEntry(entry);
     }
   }
