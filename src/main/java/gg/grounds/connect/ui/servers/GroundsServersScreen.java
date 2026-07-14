@@ -273,15 +273,6 @@ public final class GroundsServersScreen extends Screen {
     applyContentState();
   }
 
-  private void finishServerLoad() {
-    contentState = ServerContentState.afterServerLoad(model.entries().size());
-    setStatusMessage(
-        model.entries().isEmpty()
-            ? Component.translatable("grounds_connect.status.noServers")
-            : null);
-    applyContentState();
-  }
-
   private void updateLoadingIndicator() {
     if (loadingIndicator == null) {
       return;
@@ -359,10 +350,10 @@ public final class GroundsServersScreen extends Screen {
                       VanillaServerPingState.complete(
                           entry.data, SharedConstants.getCurrentVersion().protocolVersion()),
                   EventLoopGroupHolder.remote(false));
-            } catch (UnknownHostException e) {
+            } catch (UnknownHostException _) {
               VanillaServerPingState.fail(
                   entry.data, Component.translatable("multiplayer.status.cannot_resolve"));
-            } catch (Exception e) {
+            } catch (Exception _) {
               VanillaServerPingState.fail(
                   entry.data, Component.translatable("multiplayer.status.cannot_connect"));
             }
@@ -415,6 +406,15 @@ public final class GroundsServersScreen extends Screen {
   }
 
   private final class LoaderListener implements ServerDataLoader.Listener {
+    private void finishServerLoad() {
+      contentState = ServerContentState.afterServerLoad(model.entries().size());
+      setStatusMessage(
+          model.entries().isEmpty()
+              ? Component.translatable("grounds_connect.status.noServers")
+              : null);
+      applyContentState();
+    }
+
     @Override
     public void onProjectsLoaded(List<Project> projects) {
       if (isCurrentScreen()) {

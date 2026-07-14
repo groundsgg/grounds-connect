@@ -60,31 +60,30 @@ final class VanillaServerStatusRenderer {
   }
 
   static int render(
-      GuiGraphicsExtractor extractor,
-      Font font,
-      ServerData data,
-      int rightEdge,
-      int rowY,
-      int mouseX,
-      int mouseY,
-      int rowIndex,
-      long nowMillis) {
-    Display display = display(data, nowMillis, rowIndex);
-    int iconX = rightEdge - ICON_WIDTH;
-    extractor.blitSprite(PIPELINE, display.icon(), iconX, rowY, ICON_WIDTH, ICON_HEIGHT);
+      GuiGraphicsExtractor extractor, Font font, ServerData data, RenderContext context) {
+    Display display = display(data, context.nowMillis(), context.rowIndex());
+    int iconX = context.rightEdge() - ICON_WIDTH;
+    extractor.blitSprite(PIPELINE, display.icon(), iconX, context.rowY(), ICON_WIDTH, ICON_HEIGHT);
 
     int statusWidth = font.width(display.statusText());
     int statusX = iconX - STATUS_GAP - statusWidth;
-    extractor.text(font, display.statusText(), statusX, rowY + 1, STATUS_COLOR);
+    extractor.text(font, display.statusText(), statusX, context.rowY() + 1, STATUS_COLOR);
 
-    if (inside(mouseX, mouseY, iconX, rowY, ICON_WIDTH, ICON_HEIGHT)) {
-      extractor.setTooltipForNextFrame(display.pingTooltip(), mouseX, mouseY);
+    if (inside(
+        context.mouseX(), context.mouseY(), iconX, context.rowY(), ICON_WIDTH, ICON_HEIGHT)) {
+      extractor.setTooltipForNextFrame(display.pingTooltip(), context.mouseX(), context.mouseY());
     } else if (!display.playerTooltip().isEmpty()
-        && inside(mouseX, mouseY, statusX, rowY, statusWidth, font.lineHeight + 8)) {
+        && inside(
+            context.mouseX(),
+            context.mouseY(),
+            statusX,
+            context.rowY(),
+            statusWidth,
+            font.lineHeight + 8)) {
       extractor.setTooltipForNextFrame(
           display.playerTooltip().stream().map(Component::getVisualOrderText).toList(),
-          mouseX,
-          mouseY);
+          context.mouseX(),
+          context.mouseY());
     }
 
     return statusWidth == 0 ? iconX : statusX;
@@ -131,4 +130,7 @@ final class VanillaServerStatusRenderer {
       Component statusText,
       Component pingTooltip,
       List<Component> playerTooltip) {}
+
+  record RenderContext(
+      int rightEdge, int rowY, int mouseX, int mouseY, int rowIndex, long nowMillis) {}
 }

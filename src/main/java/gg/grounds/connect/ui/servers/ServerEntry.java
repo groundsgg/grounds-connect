@@ -111,12 +111,13 @@ public final class ServerEntry extends ObjectSelectionList.Entry<ServerEntry> {
             extractor,
             font,
             data,
-            rightEdge,
-            line1Y - 1,
-            mouseX,
-            mouseY,
-            statusRowIndex,
-            net.minecraft.util.Util.getMillis());
+            new VanillaServerStatusRenderer.RenderContext(
+                rightEdge,
+                line1Y - 1,
+                mouseX,
+                mouseY,
+                statusRowIndex,
+                net.minecraft.util.Util.getMillis()));
     int nameMaxRight = vanillaLeft - RIGHT_GAP;
 
     int addressMaxRight = rightEdge;

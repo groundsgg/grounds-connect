@@ -135,6 +135,19 @@ final class VanillaServerStatusRendererTest {
     assertEquals(Component.translatable("multiplayer.status.ping", 42L), display.pingTooltip());
   }
 
+  @Test
+  void groupsRowRenderingInputsInTypedContext() {
+    VanillaServerStatusRenderer.RenderContext context =
+        new VanillaServerStatusRenderer.RenderContext(310, 42, 300, 48, 2, 900L);
+
+    assertEquals(310, context.rightEdge());
+    assertEquals(42, context.rowY());
+    assertEquals(300, context.mouseX());
+    assertEquals(48, context.mouseY());
+    assertEquals(2, context.rowIndex());
+    assertEquals(900L, context.nowMillis());
+  }
+
   private static ServerData serverData(ServerData.State state) {
     ServerData data = new ServerData("Test", "localhost", ServerData.Type.OTHER);
     data.setState(state);
