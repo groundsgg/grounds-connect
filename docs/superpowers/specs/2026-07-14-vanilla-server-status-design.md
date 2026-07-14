@@ -21,14 +21,18 @@ A focused `VanillaServerStatusRenderer` owns the status-to-visual mapping and dr
 
 The renderer uses Minecraft's existing `server_list` sprites and state semantics:
 
-- `PINGING`: cycle through `pinging_1` to `pinging_5` every 100 milliseconds
+- `PINGING`: animate `pinging_1` through `pinging_5` and back down using Vanilla's
+  eight-step `1, 2, 3, 4, 5, 4, 3, 2` sequence every 100 milliseconds, offset by the row index
 - `SUCCESSFUL`: select `ping_5`, `ping_4`, `ping_3`, `ping_2`, or `ping_1` using Vanilla's latency thresholds of 150, 300, 600, and 1000 milliseconds
 - `UNREACHABLE`: show the Vanilla `unreachable` sprite
 - `INCOMPATIBLE`: show the Vanilla `incompatible` sprite
 
 The exact ping duration is not rendered as inline text. Hovering the ping icon shows Minecraft's localized ping, connecting, unreachable, or incompatible tooltip.
 
-The player count uses the formatted `ServerData.status` supplied by `ServerStatusPinger`. Hovering that count shows `ServerData.playerList`, including Minecraft's localized additional-player line when the server provides only a sample.
+For reachable, protocol-compatible servers, the player count uses the formatted `ServerData.status`
+supplied by `ServerStatusPinger`. As in Vanilla, an incompatible server shows its version text in
+red in the same position instead. Hovering the status text shows `ServerData.playerList`, including
+Minecraft's localized additional-player line when the server provides only a sample.
 
 ## Ping Data Flow
 
@@ -58,8 +62,9 @@ If player details are absent, the renderer omits the player tooltip while preser
 Unit tests cover the renderer's deterministic status mapping:
 
 - All five successful latency thresholds
-- All five 100-millisecond loading frames
+- The complete eight-step 100-millisecond loading sequence and row-index offset
 - Unreachable and incompatible sprites
+- Incompatible version-text presentation
 - Player-count presentation and player-tooltip propagation
 
 Rendering integration must preserve collision-free name and address widths alongside the Vanilla top-right cluster and Grounds bottom-right badge.
