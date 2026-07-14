@@ -3,8 +3,6 @@ package gg.grounds.connect.ui.servers;
 import gg.grounds.connect.api.DeploymentRuntime;
 import gg.grounds.connect.api.Project;
 import gg.grounds.connect.core.GroundsServices;
-import gg.grounds.connect.ui.RollbackPickerScreen;
-import gg.grounds.connect.ui.logs.LogConsoleScreen;
 import gg.grounds.connect.ui.nats.NatsScreen;
 import java.util.function.Supplier;
 import net.minecraft.client.gui.screens.ConnectScreen;
@@ -45,58 +43,6 @@ final class ServerScreenActions {
     } else {
       connect(entry);
     }
-  }
-
-  void openLogs() {
-    ServerEntry entry = selectedEntry.get();
-    String projectId = currentProjectId.get();
-    if (entry == null || projectId == null) {
-      return;
-    }
-    screen.client().setScreenAndShow(new LogConsoleScreen(screen, entry.name, projectId));
-  }
-
-  void retryBuild() {
-    ServerEntry entry = selectedEntry.get();
-    String projectId = currentProjectId.get();
-    if (entry == null || projectId == null) {
-      return;
-    }
-    screen.setStatusMessage(
-        Component.translatable("grounds_connect.status.retryingBuild", entry.name));
-    services
-        .deployments()
-        .retryLatestBuild(
-            entry.name,
-            projectId,
-            () -> {
-              if (screen.isCurrentScreen()) {
-                screen.setStatusMessage(
-                    Component.translatable("grounds_connect.status.retryStarted"));
-              }
-            },
-            error -> {
-              if (screen.isCurrentScreen()) {
-                screen.setStatusMessage(
-                    Component.translatable("grounds_connect.error.retry", error));
-              }
-            });
-  }
-
-  void rollbackSelected() {
-    ServerEntry entry = selectedEntry.get();
-    String projectId = currentProjectId.get();
-    if (entry == null || projectId == null) {
-      return;
-    }
-    Project project = services.projects().selectedProject();
-    String role = project != null ? project.role() : null;
-    if (!"owner".equalsIgnoreCase(role) && !"editor".equalsIgnoreCase(role)) {
-      screen.setStatusMessage(
-          Component.translatable("grounds_connect.status.rollbackRoleRequired"));
-      return;
-    }
-    screen.client().setScreenAndShow(new RollbackPickerScreen(screen, entry.name, projectId));
   }
 
   void openNats() {
