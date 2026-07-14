@@ -2,6 +2,7 @@
 .gradle/
 build/
 run/
+.worktrees/
 
 # IDE
 .idea/
