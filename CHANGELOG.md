@@ -6,6 +6,13 @@
 
 - Update the Fabric client mod to Minecraft 26.2.
 
+## [0.5.0](https://github.com/groundsgg/grounds-connect/compare/v0.4.4...v0.5.0) (2026-07-14)
+
+
+### Features
+
+* **connect:** restore server action hierarchy ([810b5c3](https://github.com/groundsgg/grounds-connect/commit/810b5c382acccb33c515a184f34d23bfc7a1a70d))
+
 ## [0.4.4](https://github.com/groundsgg/grounds-connect/compare/v0.4.3...v0.4.4) (2026-07-14)
 
 
