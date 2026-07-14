@@ -6,6 +6,13 @@
 
 - Update the Fabric client mod to Minecraft 26.2.
 
+## [0.4.4](https://github.com/groundsgg/grounds-connect/compare/v0.4.3...v0.4.4) (2026-07-14)
+
+
+### Bug Fixes
+
+* **connect:** restore compilable refresh button ([5e091bd](https://github.com/groundsgg/grounds-connect/commit/5e091bda7d446e21bcab18b0b507ffb6dd8b0fdd))
+
 ## [0.4.3](https://github.com/groundsgg/grounds-connect/compare/v0.4.2...v0.4.3) (2026-07-13)
 
 
