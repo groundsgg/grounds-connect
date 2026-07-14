@@ -16,12 +16,13 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.LoadingDotsWidget;
+import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.components.StringWidget;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ServerStatusPinger;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.network.EventLoopGroupHolder;
 
 /**
@@ -41,6 +42,12 @@ public final class GroundsServersScreen extends Screen {
 
   private static final int RUNTIME_POLL_TICKS = 100; // ~5s
   private static final int READINESS_POLL_TICKS = 200; // ~10s
+  private static final int ACTION_BUTTON_SIZE = 20;
+  private static final int ACTION_ICON_SIZE = 12;
+  private static final Identifier REFRESH_ICON =
+      Identifier.fromNamespaceAndPath("grounds_connect", "icon/refresh");
+  private static final Identifier LOGOUT_ICON =
+      Identifier.fromNamespaceAndPath("grounds_connect", "icon/logout");
 
   private boolean projectsRequested;
   private boolean initialLoadDone;
@@ -58,7 +65,7 @@ public final class GroundsServersScreen extends Screen {
 
   private GroundsServerList serverList;
   private AbstractWidget projectButton; // CycleButton<Project> or a disabled placeholder
-  private AbstractWidget refreshButton;
+  private SpriteIconButton refreshButton;
   private AbstractWidget natsButton;
   private AbstractWidget joinButton;
   private AbstractWidget manageButton;
@@ -97,26 +104,34 @@ public final class GroundsServersScreen extends Screen {
 
     projectButton = buildProjectButton(row);
     addRenderableWidget(projectButton);
-    refreshButton =
-        Button.builder(Component.literal("↻"), button -> reloadServers())
-            .bounds(192, row, 20, 20)
-            .tooltip(
-                Tooltip.create(Component.translatable("grounds_connect.control.refresh.tooltip")))
-            .createNarration(
-                ignored -> Component.translatable("grounds_connect.control.refresh.tooltip"))
+    var refreshTooltip = Component.translatable("grounds_connect.control.refresh.tooltip");
+    SpriteIconButton refreshIconButton =
+        SpriteIconButton.builder(refreshTooltip, button -> reloadServers(), true)
+            .size(ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE)
+            .sprite(REFRESH_ICON, ACTION_ICON_SIZE, ACTION_ICON_SIZE)
+            .tooltip(refreshTooltip)
+            .narration(ignored -> refreshTooltip)
             .build();
+    refreshIconButton.setX(192);
+    refreshIconButton.setY(row);
+    refreshButton = refreshIconButton;
     addRenderableWidget(refreshButton);
     natsButton =
         Button.builder(Component.literal("NATS"), button -> actions.openNats())
             .bounds(216, row, 60, 20)
             .build();
     addRenderableWidget(natsButton);
-    addRenderableWidget(
-        Button.builder(Component.literal("⇥"), button -> logout())
-            .bounds(width - 28, row, 20, 20)
-            .tooltip(Tooltip.create(Component.translatable("grounds_connect.menu.logout")))
-            .createNarration(ignored -> Component.translatable("grounds_connect.menu.logout"))
-            .build());
+    var logoutTooltip = Component.translatable("grounds_connect.menu.logout");
+    SpriteIconButton logoutButton =
+        SpriteIconButton.builder(logoutTooltip, button -> logout(), true)
+            .size(ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE)
+            .sprite(LOGOUT_ICON, ACTION_ICON_SIZE, ACTION_ICON_SIZE)
+            .tooltip(logoutTooltip)
+            .narration(ignored -> logoutTooltip)
+            .build();
+    logoutButton.setX(width - 28);
+    logoutButton.setY(row);
+    addRenderableWidget(logoutButton);
 
     if (platformReady) {
       search =
@@ -239,6 +254,7 @@ public final class GroundsServersScreen extends Screen {
   private void reloadServers() {
     Project selected = services.auth().isLoggedIn() ? services.projects().selectedProject() : null;
     if (selected == null) {
+      resetRefreshButtonState();
       currentProjectId = null;
       showUnavailable(Component.translatable("grounds_connect.status.noProjects"));
       return;
@@ -345,6 +361,18 @@ public final class GroundsServersScreen extends Screen {
   private void toggleExpand(ServerEntry entry) {
     GroundsConfig.get().toggleExpanded(entry.name);
     applyView();
+  }
+
+  private void resetRefreshButtonState() {
+    resetRefreshButtonState(refreshButton);
+  }
+
+  static void resetRefreshButtonState(SpriteIconButton button) {
+    if (button == null) {
+      return;
+    }
+    button.setFocused(false);
+    button.setLoading(false);
   }
 
   @Override
@@ -456,6 +484,7 @@ public final class GroundsServersScreen extends Screen {
 
   private final class LoaderListener implements ServerDataLoader.Listener {
     private void finishServerLoad() {
+      resetRefreshButtonState();
       contentState = ServerContentState.afterServerLoad(model.entries().size());
       setStatusMessage(
           model.entries().isEmpty()
