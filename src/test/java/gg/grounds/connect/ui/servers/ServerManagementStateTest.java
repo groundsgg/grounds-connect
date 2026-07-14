@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import gg.grounds.connect.core.RequestCoalescer;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -28,16 +29,21 @@ final class ServerManagementStateTest {
   }
 
   @Test
-  void rejectsDuplicateRetryUntilTheCallbackCompletes() {
-    ServerManagementState state = new ServerManagementState("owner");
+  void rejectsDuplicateRetryAcrossRecreatedStateUntilTheCallbackCompletes() {
+    RequestCoalescer retries = new RequestCoalescer();
+    ServerManagementState first =
+        new ServerManagementState("owner", retries, "project-a", "server-a");
 
-    assertTrue(state.beginRetry());
-    assertFalse(state.beginRetry());
-    assertFalse(state.retryActive());
+    assertTrue(first.beginRetry());
 
-    state.finishRetry();
+    ServerManagementState recreated =
+        new ServerManagementState("owner", retries, "project-a", "server-a");
+    assertFalse(recreated.beginRetry());
+    assertFalse(recreated.retryActive());
 
-    assertTrue(state.retryActive());
-    assertTrue(state.beginRetry());
+    first.finishRetry();
+
+    assertTrue(recreated.retryActive());
+    assertTrue(recreated.beginRetry());
   }
 }

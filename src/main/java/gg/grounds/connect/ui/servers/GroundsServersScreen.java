@@ -6,6 +6,7 @@ import gg.grounds.connect.api.GroundsServer;
 import gg.grounds.connect.api.Project;
 import gg.grounds.connect.config.GroundsConfig;
 import gg.grounds.connect.core.GroundsServices;
+import gg.grounds.connect.core.RequestCoalescer;
 import java.net.UnknownHostException;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -47,6 +48,8 @@ public final class GroundsServersScreen extends Screen {
   private boolean platformReady = true; // assume up until a probe says otherwise
   private final ServerListModel model = new ServerListModel();
   private final ServerListSelection selection = new ServerListSelection();
+  private final RequestCoalescer retryRequests = new RequestCoalescer();
+  private final ServerScreenLifecycle lifecycle = new ServerScreenLifecycle();
   private ServerContentState contentState = ServerContentState.UNAVAILABLE;
   private String currentProjectId;
   private Component loadingMessage =
@@ -203,6 +206,7 @@ public final class GroundsServersScreen extends Screen {
         showUnavailable(Component.translatable("grounds_connect.control.login"));
       }
     }
+    resumePings(lifecycle.onInitialized(contentState, model.entries()));
   }
 
   private AbstractWidget buildProjectButton(int y) {
@@ -326,7 +330,12 @@ public final class GroundsServersScreen extends Screen {
     }
     minecraft.setScreenAndShow(
         new ServerManagementScreen(
-            this, entry.name, currentProjectId, project.displayName(), project.role()));
+            this,
+            entry.name,
+            currentProjectId,
+            project.displayName(),
+            project.role(),
+            retryRequests));
   }
 
   private void toggleFavorite(ServerEntry entry) {
@@ -365,11 +374,20 @@ public final class GroundsServersScreen extends Screen {
 
   @Override
   public void removed() {
+    lifecycle.onRemoved();
     pinger.removeAll();
   }
 
   private void pingAll(List<ServerEntry> list) {
     pinger.removeAll();
+    schedulePings(list);
+  }
+
+  private void resumePings(List<ServerEntry> list) {
+    schedulePings(list);
+  }
+
+  private void schedulePings(List<ServerEntry> list) {
     for (ServerEntry entry : list) {
       VanillaServerPingState.start(entry.data);
       pingScheduler.submit(
@@ -464,26 +482,28 @@ public final class GroundsServersScreen extends Screen {
 
     @Override
     public boolean onServersLoaded(String projectId, List<GroundsServer> servers) {
-      if (!isCurrentScreen() || !projectId.equals(currentProjectId)) {
+      if (!lifecycle.acceptsServerLoad(currentProjectId, projectId)) {
         return false;
       }
       model.replaceServers(servers);
-      applyView();
-      pingAll(model.entries());
+      if (isCurrentScreen()) {
+        applyView();
+        pingAll(model.entries());
+      }
       finishServerLoad();
       return true;
     }
 
     @Override
     public void onServersError(String projectId, Throwable error) {
-      if (isCurrentScreen() && projectId.equals(currentProjectId)) {
+      if (lifecycle.acceptsServerLoad(currentProjectId, projectId)) {
         showUnavailable(Component.translatable("grounds_connect.error.servers", msg(error)));
       }
     }
 
     @Override
     public List<ServerEntry> runtimeEntries(String projectId) {
-      if (!isCurrentScreen() || !projectId.equals(currentProjectId)) {
+      if (!lifecycle.acceptsServerLoad(currentProjectId, projectId)) {
         return List.of();
       }
       return model.entries();

@@ -1,7 +1,9 @@
 package gg.grounds.connect.ui.servers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -146,6 +148,12 @@ final class VanillaServerStatusRendererTest {
     assertEquals(48, context.mouseY());
     assertEquals(2, context.rowIndex());
     assertEquals(900L, context.nowMillis());
+  }
+
+  @Test
+  void limitsPlayerTooltipHitboxToTheRenderedStatusLine() {
+    assertTrue(VanillaServerStatusRenderer.insidePlayerStatus(215, 50, 200, 42, 30));
+    assertFalse(VanillaServerStatusRenderer.insidePlayerStatus(215, 51, 200, 42, 30));
   }
 
   private static ServerData serverData(ServerData.State state) {
