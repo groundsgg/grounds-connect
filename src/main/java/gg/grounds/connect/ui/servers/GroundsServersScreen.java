@@ -6,18 +6,23 @@ import gg.grounds.connect.api.GroundsServer;
 import gg.grounds.connect.api.Project;
 import gg.grounds.connect.config.GroundsConfig;
 import gg.grounds.connect.core.GroundsServices;
+import java.net.UnknownHostException;
 import java.util.List;
 import net.minecraft.ChatFormatting;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.LoadingDotsWidget;
+import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ServerStatusPinger;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.network.EventLoopGroupHolder;
 
 /**
@@ -37,18 +42,35 @@ public final class GroundsServersScreen extends Screen {
 
   private static final int RUNTIME_POLL_TICKS = 100; // ~5s
   private static final int READINESS_POLL_TICKS = 200; // ~10s
+  private static final int ACTION_BUTTON_SIZE = 20;
+  private static final int ACTION_ICON_SIZE = 12;
+  private static final Identifier REFRESH_ICON =
+      Identifier.fromNamespaceAndPath("grounds_connect", "icon/refresh");
+  private static final Identifier LOGOUT_ICON =
+      Identifier.fromNamespaceAndPath("grounds_connect", "icon/logout");
 
   private boolean projectsRequested;
   private boolean initialLoadDone;
   private boolean platformReady = true; // assume up until a probe says otherwise
   private final ServerListModel model = new ServerListModel();
+  private final ServerListSelection selection = new ServerListSelection();
+  private final ServerRetryRegistry retryRequests = new ServerRetryRegistry();
+  private final ServerScreenLifecycle lifecycle = new ServerScreenLifecycle();
+  private ServerContentState contentState = ServerContentState.UNAVAILABLE;
   private String currentProjectId;
+  private Component loadingMessage =
+      Component.translatable("grounds_connect.status.loadingProjects");
   private Component statusMessage = Component.empty();
   private int tickCounter;
 
   private GroundsServerList serverList;
   private AbstractWidget projectButton; // CycleButton<Project> or a disabled placeholder
+  private SpriteIconButton refreshButton;
+  private AbstractWidget natsButton;
+  private AbstractWidget joinButton;
+  private AbstractWidget manageButton;
   private EditBox search;
+  private LoadingDotsWidget loadingIndicator;
   private StringWidget status;
 
   public GroundsServersScreen(Screen lastScreen) {
@@ -71,21 +93,45 @@ public final class GroundsServersScreen extends Screen {
 
     serverList = new GroundsServerList(this.minecraft, this.width, listHeight, listTop, 32);
     serverList.setOnJoin(actions::joinSelected);
+    serverList.setOnSelectionChanged(
+        entry -> {
+          selection.remember(entry);
+          applyContentState();
+        });
     serverList.setOnToggleFavorite(this::toggleFavorite);
     serverList.setOnToggleExpand(this::toggleExpand);
     addRenderableWidget(serverList);
 
     projectButton = buildProjectButton(row);
     addRenderableWidget(projectButton);
-    addRenderableWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.control.refresh"), b -> reloadServers())
-            .bounds(192, row, 80, 20)
-            .build());
-    addRenderableWidget(
-        Button.builder(Component.translatable("grounds_connect.menu.logout"), b -> logout())
-            .bounds(this.width - 104, row, 100, 20)
-            .build());
+    var refreshTooltip = Component.translatable("grounds_connect.control.refresh.tooltip");
+    SpriteIconButton refreshIconButton =
+        SpriteIconButton.builder(refreshTooltip, button -> reloadServers(), true)
+            .size(ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE)
+            .sprite(REFRESH_ICON, ACTION_ICON_SIZE, ACTION_ICON_SIZE)
+            .tooltip(refreshTooltip)
+            .narration(ignored -> refreshTooltip)
+            .build();
+    refreshIconButton.setX(192);
+    refreshIconButton.setY(row);
+    refreshButton = refreshIconButton;
+    addRenderableWidget(refreshButton);
+    natsButton =
+        Button.builder(Component.literal("NATS"), button -> actions.openNats())
+            .bounds(216, row, 60, 20)
+            .build();
+    addRenderableWidget(natsButton);
+    var logoutTooltip = Component.translatable("grounds_connect.menu.logout");
+    SpriteIconButton logoutButton =
+        SpriteIconButton.builder(logoutTooltip, button -> logout(), true)
+            .size(ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE)
+            .sprite(LOGOUT_ICON, ACTION_ICON_SIZE, ACTION_ICON_SIZE)
+            .tooltip(logoutTooltip)
+            .narration(ignored -> logoutTooltip)
+            .build();
+    logoutButton.setX(width - 28);
+    logoutButton.setY(row);
+    addRenderableWidget(logoutButton);
 
     if (platformReady) {
       search =
@@ -123,40 +169,41 @@ public final class GroundsServersScreen extends Screen {
         new StringWidget(this.width / 2 - 150, listTop + 16, 300, 12, statusMessage, this.font);
     addRenderableWidget(status);
 
-    int recoveryY = this.height - 52;
-    addRenderableWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.action.retry"), b -> actions.retryBuild())
-            .bounds(this.width / 2 - 153, recoveryY, 100, 20)
-            .build());
-    addRenderableWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.action.rollback"),
-                b -> actions.rollbackSelected())
-            .bounds(this.width / 2 - 50, recoveryY, 100, 20)
-            .build());
-    addRenderableWidget(
-        Button.builder(Component.literal("NATS"), b -> actions.openNats())
-            .bounds(this.width / 2 + 53, recoveryY, 100, 20)
-            .build());
+    loadingIndicator = new LoadingDotsWidget(this.font, loadingMessage);
+    loadingIndicator.setX(this.width / 2 - loadingIndicator.getWidth() / 2);
+    loadingIndicator.setY(listTop + Math.max(0, (listHeight - loadingIndicator.getHeight()) / 2));
+    addRenderableWidget(loadingIndicator);
 
-    int by = this.height - 28;
-    addRenderableWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.action.join"), b -> actions.joinSelected())
-            .bounds(this.width / 2 - 153, by, 100, 20)
-            .build());
-    addRenderableWidget(
-        Button.builder(
-                Component.translatable("grounds_connect.action.logs"), b -> actions.openLogs())
-            .bounds(this.width / 2 - 50, by, 100, 20)
-            .build());
-    addRenderableWidget(
-        Button.builder(CommonComponents.GUI_BACK, b -> onClose())
-            .bounds(this.width / 2 + 53, by, 100, 20)
-            .build());
+    int buttonY = height - 28;
+    for (int index = 0; index < ServerScreenControls.bottomOrder().size(); index++) {
+      ServerScreenControls.BottomAction action = ServerScreenControls.bottomOrder().get(index);
+      int buttonX = width / 2 - 153 + index * 103;
+      AbstractWidget widget =
+          switch (action) {
+            case JOIN ->
+                joinButton =
+                    Button.builder(
+                            Component.translatable("grounds_connect.action.join"),
+                            button -> actions.joinSelected())
+                        .bounds(buttonX, buttonY, 100, 20)
+                        .build();
+            case MANAGE ->
+                manageButton =
+                    Button.builder(
+                            Component.translatable("grounds_connect.action.manage"),
+                            button -> openManagement())
+                        .bounds(buttonX, buttonY, 100, 20)
+                        .build();
+            case BACK ->
+                Button.builder(CommonComponents.GUI_BACK, button -> onClose())
+                    .bounds(buttonX, buttonY, 100, 20)
+                    .build();
+          };
+      addRenderableWidget(widget);
+    }
 
     applyView();
+    applyContentState();
 
     // Only fetch on the first build — later rebuilds (resize, banner toggle) just repaint.
     if (!initialLoadDone) {
@@ -164,15 +211,16 @@ public final class GroundsServersScreen extends Screen {
       if (services.auth().isLoggedIn()) {
         if (services.projects().cachedProjects().isEmpty() && !projectsRequested) {
           projectsRequested = true;
-          setStatusMessage(Component.translatable("grounds_connect.status.loadingProjects"));
+          beginLoading(Component.translatable("grounds_connect.status.loadingProjects"));
           loader.loadProjects();
         } else {
           reloadServers();
         }
       } else {
-        setStatusMessage(Component.translatable("grounds_connect.control.login"));
+        showUnavailable(Component.translatable("grounds_connect.control.login"));
       }
     }
+    resumePings(lifecycle.onInitialized(contentState, model.entries()));
   }
 
   private AbstractWidget buildProjectButton(int y) {
@@ -206,15 +254,14 @@ public final class GroundsServersScreen extends Screen {
   private void reloadServers() {
     Project selected = services.auth().isLoggedIn() ? services.projects().selectedProject() : null;
     if (selected == null) {
-      model.clear();
+      resetRefreshButtonState();
       currentProjectId = null;
-      applyView();
-      setStatusMessage(Component.translatable("grounds_connect.status.noProjects"));
+      showUnavailable(Component.translatable("grounds_connect.status.noProjects"));
       return;
     }
-    setStatusMessage(Component.translatable("grounds_connect.status.loadingServers"));
     final String projectId = selected.id();
     this.currentProjectId = projectId;
+    beginLoading(Component.translatable("grounds_connect.status.loadingServers"));
     loader.loadServers(projectId);
   }
 
@@ -223,11 +270,87 @@ public final class GroundsServersScreen extends Screen {
       return;
     }
     List<ServerEntry> view = model.visibleEntries(GroundsConfig.get());
-    ServerEntry previouslySelected = serverList.selected();
     serverList.setServers(view);
-    if (previouslySelected != null && view.contains(previouslySelected)) {
-      serverList.setSelected(previouslySelected);
+    serverList.setSelected(selection.restore(view));
+  }
+
+  private void beginLoading(Component message) {
+    contentState = ServerContentState.LOADING;
+    loadingMessage = message;
+    model.clear();
+    if (serverList != null) {
+      selection.clear();
+      serverList.setSelected(null);
     }
+    applyView();
+    setStatusMessage(null);
+    updateLoadingIndicator();
+    applyContentState();
+  }
+
+  private void showUnavailable(Component message) {
+    contentState = ServerContentState.UNAVAILABLE;
+    model.clear();
+    if (serverList != null) {
+      selection.clear();
+      serverList.setSelected(null);
+    }
+    applyView();
+    setStatusMessage(message);
+    applyContentState();
+  }
+
+  private void updateLoadingIndicator() {
+    if (loadingIndicator == null) {
+      return;
+    }
+    loadingIndicator.setMessage(loadingMessage);
+    loadingIndicator.setWidth(this.font.width(loadingMessage));
+    loadingIndicator.setX(this.width / 2 - loadingIndicator.getWidth() / 2);
+  }
+
+  private void applyContentState() {
+    if (serverList != null) {
+      serverList.visible = contentState.listVisible();
+    }
+    if (loadingIndicator != null) {
+      loadingIndicator.visible = contentState.loaderVisible();
+    }
+    if (status != null) {
+      status.visible = !contentState.loaderVisible();
+    }
+    ServerScreenControls controls =
+        ServerScreenControls.forState(
+            contentState, serverList != null && serverList.selected() != null);
+    if (joinButton != null) {
+      joinButton.active = controls.joinActive();
+    }
+    if (manageButton != null) {
+      manageButton.active = controls.manageActive();
+    }
+    boolean projectActionsActive = ServerContentState.projectActionsActive(currentProjectId);
+    if (refreshButton != null) {
+      refreshButton.active = projectActionsActive;
+    }
+    if (natsButton != null) {
+      natsButton.active = projectActionsActive;
+    }
+  }
+
+  private void openManagement() {
+    ServerEntry entry = serverList == null ? null : serverList.selected();
+    Project project = services.projects().selectedProject();
+    if (entry == null || project == null || currentProjectId == null) {
+      return;
+    }
+    minecraft.setScreenAndShow(
+        new ServerManagementScreen(
+            this,
+            entry.name,
+            currentProjectId,
+            project.displayName(),
+            project.role(),
+            retryRequests));
   }
 
   private void toggleFavorite(ServerEntry entry) {
@@ -238,6 +361,18 @@ public final class GroundsServersScreen extends Screen {
   private void toggleExpand(ServerEntry entry) {
     GroundsConfig.get().toggleExpanded(entry.name);
     applyView();
+  }
+
+  private void resetRefreshButtonState() {
+    resetRefreshButtonState(refreshButton);
+  }
+
+  static void resetRefreshButtonState(SpriteIconButton button) {
+    if (button == null) {
+      return;
+    }
+    button.setFocused(false);
+    button.setLoading(false);
   }
 
   @Override
@@ -266,23 +401,38 @@ public final class GroundsServersScreen extends Screen {
 
   @Override
   public void removed() {
+    lifecycle.onRemoved();
     pinger.removeAll();
   }
 
   private void pingAll(List<ServerEntry> list) {
     pinger.removeAll();
+    schedulePings(list);
+  }
+
+  private void resumePings(List<ServerEntry> list) {
+    schedulePings(list);
+  }
+
+  private void schedulePings(List<ServerEntry> list) {
     for (ServerEntry entry : list) {
-      entry.pinging = true;
+      VanillaServerPingState.start(entry.data);
       pingScheduler.submit(
           () -> {
             try {
               pinger.pingServer(
                   entry.data,
-                  () -> entry.pinging = false,
-                  () -> entry.pinging = false,
+                  () -> {},
+                  () ->
+                      VanillaServerPingState.complete(
+                          entry.data, SharedConstants.getCurrentVersion().protocolVersion()),
                   EventLoopGroupHolder.remote(false));
-            } catch (Exception e) {
-              entry.pinging = false;
+            } catch (UnknownHostException _) {
+              VanillaServerPingState.fail(
+                  entry.data, Component.translatable("multiplayer.status.cannot_resolve"));
+            } catch (Exception _) {
+              VanillaServerPingState.fail(
+                  entry.data, Component.translatable("multiplayer.status.cannot_connect"));
             }
           });
     }
@@ -333,6 +483,16 @@ public final class GroundsServersScreen extends Screen {
   }
 
   private final class LoaderListener implements ServerDataLoader.Listener {
+    private void finishServerLoad() {
+      resetRefreshButtonState();
+      contentState = ServerContentState.afterServerLoad(model.entries().size());
+      setStatusMessage(
+          model.entries().isEmpty()
+              ? Component.translatable("grounds_connect.status.noServers")
+              : null);
+      applyContentState();
+    }
+
     @Override
     public void onProjectsLoaded(List<Project> projects) {
       if (isCurrentScreen()) {
@@ -344,35 +504,34 @@ public final class GroundsServersScreen extends Screen {
     @Override
     public void onProjectsError(Throwable error) {
       if (isCurrentScreen()) {
-        setStatusMessage(Component.translatable("grounds_connect.error.projects", msg(error)));
+        showUnavailable(Component.translatable("grounds_connect.error.projects", msg(error)));
       }
     }
 
     @Override
     public boolean onServersLoaded(String projectId, List<GroundsServer> servers) {
-      if (!isCurrentScreen() || !projectId.equals(currentProjectId)) {
+      if (!lifecycle.acceptsServerLoad(currentProjectId, projectId)) {
         return false;
       }
       model.replaceServers(servers);
-      applyView();
-      pingAll(model.entries());
-      setStatusMessage(
-          model.entries().isEmpty()
-              ? Component.translatable("grounds_connect.status.noServers")
-              : null);
+      if (isCurrentScreen()) {
+        applyView();
+        pingAll(model.entries());
+      }
+      finishServerLoad();
       return true;
     }
 
     @Override
     public void onServersError(String projectId, Throwable error) {
-      if (isCurrentScreen() && projectId.equals(currentProjectId)) {
-        setStatusMessage(Component.translatable("grounds_connect.error.servers", msg(error)));
+      if (lifecycle.acceptsServerLoad(currentProjectId, projectId)) {
+        showUnavailable(Component.translatable("grounds_connect.error.servers", msg(error)));
       }
     }
 
     @Override
     public List<ServerEntry> runtimeEntries(String projectId) {
-      if (!isCurrentScreen() || !projectId.equals(currentProjectId)) {
+      if (!lifecycle.acceptsServerLoad(currentProjectId, projectId)) {
         return List.of();
       }
       return model.entries();
