@@ -6,6 +6,14 @@
 
 - Update the Fabric client mod to Minecraft 26.2.
 
+## [0.5.1](https://github.com/groundsgg/grounds-connect/compare/v0.5.0...v0.5.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* bump io.sentry:sentry from 8.48.0 to 8.49.0 ([#48](https://github.com/groundsgg/grounds-connect/issues/48)) ([34dd696](https://github.com/groundsgg/grounds-connect/commit/34dd696569fe20ef6a1b22559e70695c208a2201))
+* bump io.sentry.jvm.gradle from 6.14.0 to 6.15.0 ([#49](https://github.com/groundsgg/grounds-connect/issues/49)) ([27dc717](https://github.com/groundsgg/grounds-connect/commit/27dc71784ccc8735cdc81b700cf3afe7e2cf7ebb))
+
 ## [0.5.0](https://github.com/groundsgg/grounds-connect/compare/v0.4.4...v0.5.0) (2026-07-14)
 
 
