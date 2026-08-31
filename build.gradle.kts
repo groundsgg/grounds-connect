@@ -1,7 +1,7 @@
 plugins {
     id("fabric-loom") version "1.17.11"
     id("com.diffplug.spotless") version "8.10.0"
-    id("io.sentry.jvm.gradle") version "6.19.0"
+    id("io.sentry.jvm.gradle") version "6.20.0"
 }
 
 base { archivesName.set(project.property("archives_base_name") as String) }
