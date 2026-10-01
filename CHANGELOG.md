@@ -6,6 +6,22 @@
 
 - Update the Fabric client mod to Minecraft 26.2.
 
+## [0.5.2](https://github.com/groundsgg/grounds-connect/compare/v0.5.1...v0.5.2) (2026-10-01)
+
+
+### Bug Fixes
+
+* bump com.diffplug.spotless from 8.10.0 to 8.10.3 ([#77](https://github.com/groundsgg/grounds-connect/issues/77)) ([119b84e](https://github.com/groundsgg/grounds-connect/commit/119b84ed3384d4dd850db9cad83264ebd7b45b1f))
+* bump com.diffplug.spotless from 8.8.0 to 8.10.0 ([#63](https://github.com/groundsgg/grounds-connect/issues/63)) ([32d09e2](https://github.com/groundsgg/grounds-connect/commit/32d09e241d2decb9da43671ea719a6a4662a1af5))
+* bump gradle-wrapper from 9.6.1 to 9.7.1 ([#64](https://github.com/groundsgg/grounds-connect/issues/64)) ([0d68849](https://github.com/groundsgg/grounds-connect/commit/0d68849e51a4f3f7368ecb5b3a2275269aa8b310))
+* bump gradle-wrapper from 9.7.1 to 9.8.0 ([#79](https://github.com/groundsgg/grounds-connect/issues/79)) ([721f550](https://github.com/groundsgg/grounds-connect/commit/721f55050ff6174d31e692ffe435ae0be6e832e9))
+* bump io.sentry:sentry from 8.50.1 to 8.53.0 ([#61](https://github.com/groundsgg/grounds-connect/issues/61)) ([9b325c8](https://github.com/groundsgg/grounds-connect/commit/9b325c8ffbab69a006850567d7c36993bfd7a032))
+* bump io.sentry:sentry from 8.53.0 to 8.58.0 ([#81](https://github.com/groundsgg/grounds-connect/issues/81)) ([fe6ff8b](https://github.com/groundsgg/grounds-connect/commit/fe6ff8b667191f51f7a0aa96e8aaeae50ca87061))
+* bump io.sentry.jvm.gradle from 6.16.0 to 6.19.0 ([#60](https://github.com/groundsgg/grounds-connect/issues/60)) ([999d0a8](https://github.com/groundsgg/grounds-connect/commit/999d0a808b1fdb65c6f6c19342742788aa706e2d))
+* bump io.sentry.jvm.gradle from 6.19.0 to 6.23.0 ([#80](https://github.com/groundsgg/grounds-connect/issues/80)) ([6f907e0](https://github.com/groundsgg/grounds-connect/commit/6f907e09b824fa680d0985a6052785e8df601baa))
+* bump net.fabricmc:sponge-mixin in the fabric group ([#66](https://github.com/groundsgg/grounds-connect/issues/66)) ([1df4efa](https://github.com/groundsgg/grounds-connect/commit/1df4efab8c1777d9becd3d1adaff7cc5e7ca1e41))
+* bump org.junit.jupiter:junit-jupiter from 6.1.2 to 6.1.3 ([#62](https://github.com/groundsgg/grounds-connect/issues/62)) ([9b0576c](https://github.com/groundsgg/grounds-connect/commit/9b0576cb1904790c3a1b8472ee9807fdd0045936))
+
 ## [0.5.1](https://github.com/groundsgg/grounds-connect/compare/v0.5.0...v0.5.1) (2026-07-28)
 
 
