@@ -30,8 +30,8 @@ dependencies {
     // annotations (loom does not auto-inject it for this loader/MC combination).
     implementation("net.fabricmc:sponge-mixin:0.17.4+")
 
-    implementation("io.sentry:sentry:8.58.0")
-    include("io.sentry:sentry:8.58.0")
+    implementation("io.sentry:sentry:8.59.0")
+    include("io.sentry:sentry:8.59.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
